@@ -3,7 +3,6 @@ package twitter
 import (
 	"encoding/json"
 	"fmt"
-    "strconv"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
 	"net/http"
@@ -56,31 +55,5 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	return json.NewDecoder(resp.Body).Decode(data)
 }
 
-func (a TwitterApi) GetHomeTimeline() (timeline []Tweet, err error) {
-	v := url.Values{}
-	v.Set("include_entities", "true")
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/home_timeline.json", v, &timeline)
-	return
-}
 
-func (a TwitterApi) GetUserTimeline(v url.Values) (timeline []Tweet, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/user_timeline.json", v, &timeline)
-	return
-}
-
-func (a TwitterApi) GetMentionsTimeline(v url.Values) (timeline []Tweet, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/mentions_timeline.json", v, &timeline)
-    return
-}
-
-func (a TwitterApi) GetRetweetsOfMe(v url.Values) (tweets []Tweet, err error) {
-    err = a.apiGet("https://api.twitter.com/1.1/statuses/retweets_of_me.json", v, &tweets)
-    return
-}
-
-func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error){
-    v.Set("id", strconv.FormatInt(id,10))
-    err = a.apiGet("https://api.twitter.com/1.1/statuses/show.json", v, &tweet)
-    return
-}
 
