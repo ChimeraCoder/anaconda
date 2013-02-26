@@ -35,8 +35,8 @@ func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) err
 }
 
 // apiPost issues a POST request to the Twitter API and decodes the response JSON to data.
-func apiPost(cred *oauth.Credentials, urlStr string, form url.Values, data interface{}) error {
-	resp, err := OauthClient.Post(http.DefaultClient, cred, urlStr, form)
+func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) error {
+	resp, err := OauthClient.Post(http.DefaultClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
 	}
