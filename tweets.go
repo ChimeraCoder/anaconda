@@ -36,3 +36,14 @@ func (a TwitterApi) DeleteTweet(id int64, trimUser bool) (tweet Tweet, err error
     err = a.apiPost(fmt.Sprintf("https://api.twitter.com/1.1/statuses/destroy/%d.json", id), v, &tweet)
 	return
 }
+
+//Retweet will retweet the status (tweet) with the specified ID.
+//trimUser functions as in DeleteTweet
+func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Retweet, err error) {
+    v := url.Values{}
+    if trimUser{
+        v.Set("trim_user", "t")
+    }
+    err = a.apiPost(fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweet/%d.json", id), v, &rt )
+	return
+}
