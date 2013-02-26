@@ -15,10 +15,9 @@ var OauthClient = oauth.Client{
 	TokenRequestURI:               "http://api.twitter.com/oauth/access_token",
 }
 
-type TwitterApi struct{
-    Credentials *oauth.Credentials
+type TwitterApi struct {
+	Credentials *oauth.Credentials
 }
-
 
 func SetCredentials(client_marshalled string) (err error) {
 	err = json.Unmarshal([]byte(client_marshalled), &OauthClient)
@@ -54,6 +53,3 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
 }
-
-
-

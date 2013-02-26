@@ -1,7 +1,7 @@
 package twitter
 
 import (
-    "net/url"
+	"net/url"
 )
 
 func (a TwitterApi) GetHomeTimeline() (timeline []Tweet, err error) {
@@ -18,12 +18,10 @@ func (a TwitterApi) GetUserTimeline(v url.Values) (timeline []Tweet, err error) 
 
 func (a TwitterApi) GetMentionsTimeline(v url.Values) (timeline []Tweet, err error) {
 	err = a.apiGet("http://api.twitter.com/1.1/statuses/mentions_timeline.json", v, &timeline)
-    return
+	return
 }
 
 func (a TwitterApi) GetRetweetsOfMe(v url.Values) (tweets []Tweet, err error) {
-    err = a.apiGet("https://api.twitter.com/1.1/statuses/retweets_of_me.json", v, &tweets)
-    return
+	err = a.apiGet("https://api.twitter.com/1.1/statuses/retweets_of_me.json", v, &tweets)
+	return
 }
-
-
