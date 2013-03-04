@@ -1,4 +1,4 @@
-package twitter
+package anaconda
 
 type TwitterUser struct {
 	Statuses_count                     *float64

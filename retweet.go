@@ -1,4 +1,4 @@
-package twitter
+package anaconda
 
 type Retweet struct {
 	Favorited     *bool

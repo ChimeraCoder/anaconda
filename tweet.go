@@ -1,4 +1,4 @@
-package twitter
+package anaconda
 
 type Tweet struct {
 	Source    string

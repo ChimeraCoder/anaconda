@@ -1,4 +1,4 @@
-package twitter
+package anaconda
 
 type DirectMessage struct {
 	text     string
