@@ -37,12 +37,5 @@ type TwitterUser struct {
 	Show_all_inline_media              *bool
 	Profile_text_color                 *string
 	Lang                               *string
-	Entities                           *struct {
-		Url struct {
-			Urls []interface{}
-		}
-		Description struct {
-			Urls []interface{}
-		}
-	}
+	Entities                           *TwitterEntities
 }
