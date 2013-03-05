@@ -24,7 +24,7 @@ api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
 Queries are conducted using the authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
 
 ````go
-searchResult, _ := api.GetSearch("golang", url.Values{})
+searchResult, _ := api.GetSearch("golang", nil)
 for _ , tweet := range searchResult {
     fmt.Print(tweet.Text)
 }   
@@ -38,7 +38,7 @@ v.Set("count", "30")
 result, err := api.GetSearch("golang", v)
 ````
 
-(Remember that `url.Values` is equivalent to a `map[string][]string`, if you find that more convenient notation). Otherwise, the empty `url.Values{}` suffices.
+(Remember that `url.Values` is equivalent to a `map[string][]string`, if you find that more convenient notation when specifying values). Otherwise, `nil` suffices.
 
 
 
