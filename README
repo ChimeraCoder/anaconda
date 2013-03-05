@@ -2,22 +2,43 @@ Anaconda
 ====================
 
 
-Anaconda is a Go package to access version 1.1 of the Twitter API.
+Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API.
 
 
 
 Examples
 -------------
 
+### Authentication
+
+If you already have the access token (and secret) for your user (Twitter provides this for your own account on the developer portal), creating the client is simple:
+
 ````go
 twitter.SetConsumerKey("your-consumer-key")
 twitter.SetConsumerSecret("your-consumer-secret")
 api := twitter.NewTwitterApi("your-access-token", "your-access-token-secret")
+````
+
+### Queries
+
+Queries are conducted using the authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
+
+````go
 searchResult, _ := api.GetSearch("golang", url.Values{})
 for _ , tweet := range searchResult {
     fmt.Print(tweet.Text)
 }   
 ````
+Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
+
+````go
+//Perhaps we want 30 values instead of the default 15
+v := url.Values{}
+v.Set("count", "30")
+result, err := api.GetSearch("golang", v)
+````
+
+(Remember that `url.Values` is equivalent to a `map[string][]string`, if you find that more convenient notation). Otherwise, the empty `url.Values{}` suffices.
 
 
 
