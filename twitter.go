@@ -48,6 +48,13 @@ func AuthorizationURL(callback string) (string, error) {
 	return oauthClient.AuthorizationURL(tempCred, nil), nil
 }
 
+func cleanValues(v url.Values) url.Values {
+	if v == nil {
+		return url.Values{}
+	}
+	return v
+}
+
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
 	resp, err := oauthClient.Get(http.DefaultClient, c.Credentials, urlStr, form)
