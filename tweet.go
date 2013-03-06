@@ -1,11 +1,11 @@
 package anaconda
 
 type Tweet struct {
-	Source    string
-	Id        int64
-	Retweeted bool
-	Favorited bool
-	//User          TwitterUser
+	Source        string
+	Id            int64
+	Retweeted     bool
+	Favorited     bool
+	User          TwitterUser
 	Truncated     bool
 	Text          string
 	Retweet_count int64
