@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -34,8 +33,10 @@ type TwitterApi struct {
 type ApiError struct {
 	errorString   string
 	httpStatus    int
-	TwitterErrors error  //If non-nil, this will be a TwitterError struct.
-	requestUrl    string //If this was in response to a request, which endpoint?
+	TwitterErrors error //If non-nil, this will be a TwitterError struct.
+	//Using 'error' as the type should solve the nil error:
+	//http://golang.org/doc/faq#nil_error
+	requestUrl string //If this was in response to a request, which endpoint?
 }
 
 func (e ApiError) Error() string {
@@ -154,8 +155,6 @@ func decodeResponse(resp *http.Response, data interface{}) (err error) {
 			err_resp.Errors[i].NextError = err_resp.Errors[i+1]
 		}
 		err = err_resp.Errors[0]
-		log.Printf("We're passing in errors %+v", err)
-
 		return ApiError{string(p), resp.StatusCode, err, resp.Request.URL.String()}
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
