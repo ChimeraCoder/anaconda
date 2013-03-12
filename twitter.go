@@ -18,7 +18,6 @@ type TwitterApi struct {
 	Credentials *oauth.Credentials
 }
 
-//This is probably unnecessary, but technically Twitter error codes are separate from the HTTP statuses, so it's separate for now.
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.

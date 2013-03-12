@@ -11,6 +11,7 @@ const (
 	TwitterErrorBadAuthenticationData   = 215
 )
 
+//This is probably unnecessary, but technically Twitter error codes are separate from the HTTP statuses, so it's separate for now.
 type ApiError struct {
 	errorString   string
 	httpStatus    int
