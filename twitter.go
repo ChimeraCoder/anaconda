@@ -2,9 +2,9 @@ package anaconda
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -15,8 +15,72 @@ var oauthClient = oauth.Client{
 	TokenRequestURI:               "http://api.twitter.com/oauth/access_token",
 }
 
+const (
+
+	//As defined on https://dev.twitter.com/docs/error-codes-responses
+	TwitterErrorDoesNotExist            = 34
+	TwitterErrorRateLimitExceeded       = 88
+	TwitterErrorInvalidToken            = 89
+	TwitterErrorOverCapacity            = 130
+	TwitterErrorInternalError           = 131
+	TwitterErrorCouldNotAuthenticateYou = 135
+	TwitterErrorBadAuthenticationData   = 215
+)
+
 type TwitterApi struct {
 	Credentials *oauth.Credentials
+}
+
+type ApiError struct {
+	errorString   string
+	httpStatus    int
+	TwitterErrors error  //If non-nil, this will be a TwitterError struct.
+	requestUrl    string //If this was in response to a request, which endpoint?
+}
+
+func (e ApiError) Error() string {
+	return e.errorString
+}
+
+func (e ApiError) HttpCode() int {
+	return e.httpStatus
+}
+
+func (e ApiError) Code() int {
+	return e.httpStatus
+}
+
+//TwitterError corresponds to the JSON errors that Twitter may return in API queries
+type TwitterError struct {
+	Message   string
+	Code      int
+	NextError error //Will be non-nil if Twitter returned more than one error
+}
+
+//OrMap returns true if the function evalutes to true on any TwitterError later in the list
+func (c TwitterError) OrMap(f func(TwitterError) bool) bool {
+	if f(c) {
+		return true
+	}
+	if c.NextError == nil {
+		return false
+	}
+	return c.NextError.(TwitterError).OrMap(f)
+}
+
+//ContainsError returns true if the current error or any later error in the list matches the error code specified.
+func (err TwitterError) ContainsError(code int) bool {
+	return err.OrMap(func(e TwitterError) bool {
+		return e.Code == code
+	})
+}
+
+type twitterErrorResponse struct {
+	Errors []TwitterError
+}
+
+func (e TwitterError) Error() string {
+	return e.Message
 }
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
@@ -76,11 +140,23 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 }
 
 // decodeResponse decodes the JSON response from the Twitter API.
-func decodeResponse(resp *http.Response, data interface{}) error {
+func decodeResponse(resp *http.Response, data interface{}) (err error) {
 	if resp.StatusCode != 200 {
 		p, _ := ioutil.ReadAll(resp.Body)
 
-		return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
+		//Decode the error message(s) sent by Twitter
+		var err_resp twitterErrorResponse
+		if err := json.Unmarshal(p, &err_resp); err != nil {
+			return err
+		}
+
+		for i := 0; i < (len(err_resp.Errors) - 1); i++ {
+			err_resp.Errors[i].NextError = err_resp.Errors[i+1]
+		}
+		err = err_resp.Errors[0]
+		log.Printf("We're passing in errors %+v", err)
+
+		return ApiError{string(p), resp.StatusCode, err, resp.Request.URL.String()}
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
 }
