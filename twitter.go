@@ -1,3 +1,42 @@
+//Package anaconda provides structs and functions for accessing version 1.1
+//of the Twitter API.
+//
+//Successful API queries return native Go structs that can be used immediately,
+//with no need for type assertions.
+//
+//Authentication
+//
+//If you already have the access token (and secret) for your user (Twitter provides this for your own account on the developer portal), creating the client is simple:
+//
+//  anaconda.SetConsumerKey("your-consumer-key")
+//  anaconda.SetConsumerSecret("your-consumer-secret")
+//  api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+//
+//
+//Queries
+//
+//Executing queries on an authenticated TwitterApi struct is simple.
+//
+//  searchResult, _ := api.GetSearch("golang", nil)
+//  for _ , tweet := range searchResult {
+//      fmt.Print(tweet.Text)
+//  }
+//
+//Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
+//
+//  v := url.Values{}
+//  v.Set("count", "30")
+//  result, err := api.GetSearch("golang", v)
+//
+//
+//Endpoints
+//
+//Anaconda implements most of the endpoints defined in the Twitter API documentation: https://dev.twitter.com/docs/api/1.1.
+//For clarity, in most cases, the function name is simply the name of the HTTP method and the endpoint (e.g., the endpoint `GET /friendships/incoming` is provided by the function `GetFriendshipsIncoming`).
+//
+//In a few cases, a shortened form has been chosen to make life easier (for example, retweeting is simply the function `Retweet`)
+//
+//More detailed information about the behavior of each particular endpoint can be found at the official Twitter API documentation.
 package anaconda
 
 import (
@@ -26,13 +65,13 @@ func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
 }
 
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
-//This key is listed on https://dev.twitter.com/apps/{APP_ID}/show
+//This key is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerKey(consumer_key string) {
 	oauthClient.Credentials.Token = consumer_key
 }
 
 //SetConsumerSecret will set the application-specific secret used in the initial OAuth process
-//This secret is listed on https://dev.twitter.com/apps/{APP_ID}/show
+//This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
