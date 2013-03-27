@@ -45,11 +45,6 @@ func (e ApiError) ErrorCode() int {
 	return e.TwitterErrors.(TwitterError).Code
 }
 
-//HttpCode provides the HTTP status code returned, if the error originated with a HTTP request
-func (e ApiError) HTTPStatus() int {
-	return e.httpStatus
-}
-
 //TwitterError corresponds to the JSON errors that Twitter may return in API queries
 //It satisifes the CodedError interface
 type TwitterError struct {
@@ -67,24 +62,4 @@ func (e TwitterError) Error() string {
 //Code is included to satisfy the CodedError interface
 func (e TwitterError) ErrorCode() int {
 	return e.Code
-}
-
-//Leaving these two functions in only since there's no reason to remove them (yet)
-
-//OrMap returns true if the function evalutes to true on any TwitterError later in the list
-func (c TwitterError) OrMap(f func(TwitterError) bool) bool {
-	if f(c) {
-		return true
-	}
-	if c.NextError == nil {
-		return false
-	}
-	return c.NextError.(TwitterError).OrMap(f)
-}
-
-//ContainsError returns true if the current error or any later error in the list matches the error code specified.
-func (err TwitterError) ContainsError(code int) bool {
-	return err.OrMap(func(e TwitterError) bool {
-		return e.ErrorCode() == code
-	})
 }
