@@ -18,7 +18,6 @@ type TwitterApi struct {
 	Credentials *oauth.Credentials
 }
 
-
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
 func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
@@ -73,6 +72,11 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 	}
 	defer resp.Body.Close()
 	return decodeResponse(resp, data)
+}
+
+//Internal struct used only to unmarshal the error response that Twitter provides
+type twitterErrorResponse struct {
+	Errors []TwitterError
 }
 
 // decodeResponse decodes the JSON response from the Twitter API.
