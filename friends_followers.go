@@ -14,6 +14,14 @@ type Cursor struct {
 	Next_cursor_str string
 }
 
+type TwitterUserCursor struct {
+    Previous_cursor int64
+    Previous_cursor_str string
+    Next_cursor int64
+    Next_cursor_str string
+    Users []TwitterUser
+}
+
 type Friendship struct {
 	Name        string
 	Id_str      string
@@ -46,5 +54,10 @@ func (a TwitterApi) GetFriendshipsIncoming(v url.Values) (c Cursor, err error) {
 
 func (a TwitterApi) GetFriendshipsOutgoing(v url.Values) (c Cursor, err error) {
 	err = a.apiGet("http://api.twitter.com/1.1/friendships/outgoing.json", v, &c)
+	return
+}
+
+func (a TwitterApi) GetFollowersList(v url.Values) (c TwitterUserCursor, err error) {
+    err = a.apiGet("https://api.twitter.com/1.1/followers/list.json", v, &c)
 	return
 }
