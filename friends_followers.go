@@ -5,7 +5,7 @@ import (
 )
 
 type Cursor struct {
-	Previous_cursor     int
+	Previous_cursor     int64
 	Previous_cursor_str string
 
 	Ids []int64
