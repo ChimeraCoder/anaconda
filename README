@@ -28,7 +28,7 @@ Queries are conducted using the authenticated `TwitterApi` struct. In v1.1 of Tw
 ````go
 searchResult, _ := api.GetSearch("golang", nil)
 for _ , tweet := range searchResult {
-    fmt.Print(tweet.Text)
+    fmt.Println(tweet.Text)
 }   
 ````
 Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
