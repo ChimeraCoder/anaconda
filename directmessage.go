@@ -12,7 +12,7 @@ type DirectMessage struct {
 	recipient_id          float64
 	id                    float64
 	recipient_screen_name string
-	sender                struct {
+	Sender                struct {
 		name                               string
 		default_profile_image              bool
 		profile_image_url_https            string
@@ -46,7 +46,7 @@ type DirectMessage struct {
 		geo_enabled                        bool
 		description                        string
 		profile_sidebar_border_color       string
-		screen_name                        string
+		Screen_name                        string
 		listed_count                       float64
 		followers_count                    float64
 		location                           string
