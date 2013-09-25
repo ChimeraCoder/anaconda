@@ -10,3 +10,4 @@ func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []TwitterU
 	err = a.apiGet("http://api.twitter.com/1.1/users/lookup.json", v, &u)
 	return
 }
+
