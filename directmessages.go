@@ -10,11 +10,11 @@ func (a TwitterApi) GetDirectMessages(v url.Values) (messages []DirectMessage, e
 }
 
 func (a TwitterApi) GetDirectMessagesSent(v url.Values) (messages []DirectMessage, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/direct_messages.json", v, &messages)
+	err = a.apiGet("https://api.twitter.com/1.1/direct_messages_sent.json", v, &messages)
 	return
 }
 
 func (a TwitterApi) GetDirectMessagesShow(v url.Values) (messages []DirectMessage, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/direct_messages/sent.json", v, &messages)
+	err = a.apiGet("https://api.twitter.com/1.1/direct_messages/show.json", v, &messages)
 	return
 }
