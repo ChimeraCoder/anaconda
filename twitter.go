@@ -47,6 +47,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -54,8 +55,6 @@ const (
 	_GET  = iota
 	_POST = iota
 )
-
-const _SECONDS_PER_QUERY = 10
 
 var oauthClient = oauth.Client{
 	TemporaryCredentialRequestURI: "http://api.twitter.com/oauth/request_token",
@@ -66,6 +65,8 @@ var oauthClient = oauth.Client{
 type TwitterApi struct {
 	Credentials *oauth.Credentials
 	queryQueue  chan query
+	delay       time.Duration
+	delay_mutex sync.Mutex
 }
 
 type query struct {
@@ -87,6 +88,7 @@ type ApiError struct {
 	Body       string
 	URL        *url.URL
 }
+const DEFAULT_DELAY = 10 * time.Second
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
@@ -94,7 +96,7 @@ func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue}
+	c := TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, DEFAULT_DELAY, sync.Mutex{}}
 	go c.throttledQuery()
 	return c
 }
@@ -109,6 +111,14 @@ func SetConsumerKey(consumer_key string) {
 //This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
+}
+
+//SetDelay will set the delay between throttled queries
+//To turn of throttling, set it to 0 seconds
+func (c TwitterApi) SetDelay(t time.Duration) {
+	c.delay_mutex.Lock()
+	c.delay = t
+	c.delay_mutex.Unlock()
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -231,6 +241,10 @@ func (c TwitterApi) throttledQuery() {
 			err  error
 		}{data, err}
 
-		time.Sleep(_SECONDS_PER_QUERY * time.Second)
+		//We have to hold a mutex because the delay time may have changed
+		c.delay_mutex.Lock()
+		delay := c.delay
+		c.delay_mutex.Unlock()
+		time.Sleep(delay)
 	}
 }
