@@ -50,6 +50,13 @@ import (
 	"time"
 )
 
+const (
+	_GET  = iota
+	_POST = iota
+)
+
+const _SECONDS_PER_QUERY = 10
+
 var oauthClient = oauth.Client{
 	TemporaryCredentialRequestURI: "http://api.twitter.com/oauth/request_token",
 	ResourceOwnerAuthorizationURI: "http://api.twitter.com/oauth/authenticate",
@@ -58,6 +65,20 @@ var oauthClient = oauth.Client{
 
 type TwitterApi struct {
 	Credentials *oauth.Credentials
+	queryQueue  chan query
+}
+
+type query struct {
+	url         string
+	form        url.Values
+	data        interface{}
+	method      int
+	response_ch chan response
+}
+
+type response struct {
+	data interface{}
+	err  error
 }
 
 type ApiError struct {
@@ -70,7 +91,12 @@ type ApiError struct {
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
 func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
-	return TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}}
+	//TODO figure out how much to buffer this channel
+	//A non-buffered channel will cause blocking when multiple queries are made at the same time
+	queue := make(chan query)
+	c := TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue}
+	go c.throttledQuery()
+	return c
 }
 
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
@@ -176,4 +202,35 @@ func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.T
 	}
 
 	return false, time.Time{}
+//query executes a query to the specified url, sending the values specified by form, and decodes the response JSON to data
+//method can be either _GET or _POST
+func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, method int) error {
+	switch method {
+	case _GET:
+		return c.apiGet(urlStr, form, data)
+	case _POST:
+		return c.apiPost(urlStr, form, data)
+	default:
+		return fmt.Errorf("HTTP method not yet supported")
+	}
+}
+
+//throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
+func (c TwitterApi) throttledQuery() {
+	for q := range c.queryQueue {
+		url := q.url
+		form := q.form
+		data := q.data //This is where the actual response will be written
+		method := q.method
+
+		response_ch := q.response_ch
+
+		err := c.execQuery(url, form, data, method)
+		response_ch <- struct {
+			data interface{}
+			err  error
+		}{data, err}
+
+		time.Sleep(_SECONDS_PER_QUERY * time.Second)
+	}
 }
