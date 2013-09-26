@@ -7,21 +7,26 @@ import (
 func (a TwitterApi) GetHomeTimeline() (timeline []Tweet, err error) {
 	v := url.Values{}
 	v.Set("include_entities", "true")
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/home_timeline.json", v, &timeline)
-	return
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{"http://api.twitter.com/1.1/statuses/home_timeline.json", v, &timeline, _GET, response_ch}
+	return timeline, (<-response_ch).err
 }
 
 func (a TwitterApi) GetUserTimeline(v url.Values) (timeline []Tweet, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/user_timeline.json", v, &timeline)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"http://api.twitter.com/1.1/statuses/user_timeline.json", v, &timeline, _GET, response_ch}
+	return timeline, (<-response_ch).err
 }
 
 func (a TwitterApi) GetMentionsTimeline(v url.Values) (timeline []Tweet, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/statuses/mentions_timeline.json", v, &timeline)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"http://api.twitter.com/1.1/statuses/mentions_timeline.json", v, &timeline, _GET, response_ch}
+	return timeline, (<-response_ch).err
 }
 
 func (a TwitterApi) GetRetweetsOfMe(v url.Values) (tweets []Tweet, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/statuses/retweets_of_me.json", v, &tweets)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"https://api.twitter.com/1.1/statuses/retweets_of_me.json", v, &tweets, _GET, response_ch}
+	return tweets, (<-response_ch).err
 }
