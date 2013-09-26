@@ -30,11 +30,12 @@ type Friendship struct {
 	Screen_name string
 }
 
-//GetFriendshipsNoRetweets returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
+//GetFriendshipsNoRetweets s a collection of user_ids that the currently authenticated user does not want to receive retweets from.
 //It does not currently support the stringify_ids parameter
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/friendships/no_retweets/ids.json", nil, &ids)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"https://api.twitter.com/1.1/friendships/no_retweets/ids.json", nil, &ids, _GET, response_ch}
+	return ids, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
@@ -43,26 +44,31 @@ func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
 }
 
 func (a TwitterApi) GetFriendsIds(v url.Values) (c Cursor, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/friends/ids.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"https://api.twitter.com/1.1/friends/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsLookup(v url.Values) (friendships []Friendship, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/friendships/lookup.json", v, &friendships)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"http://api.twitter.com/1.1/friendships/lookup.json", v, &friendships, _GET, response_ch}
+	return friendships, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsIncoming(v url.Values) (c Cursor, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/friendships/incoming.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"https://api.twitter.com/1.1/friendships/incoming.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsOutgoing(v url.Values) (c Cursor, err error) {
-	err = a.apiGet("http://api.twitter.com/1.1/friendships/outgoing.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"http://api.twitter.com/1.1/friendships/outgoing.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFollowersList(v url.Values) (c TwitterUserCursor, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/followers/list.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{"https://api.twitter.com/1.1/followers/list.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
