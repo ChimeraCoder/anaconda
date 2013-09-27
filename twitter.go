@@ -178,6 +178,7 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 //throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
 func (c TwitterApi) throttledQuery() {
 	for q := range c.queryQueue {
+        now := time.Now()
 		url := q.url
 		form := q.form
 		data := q.data //This is where the actual response will be written
@@ -195,6 +196,6 @@ func (c TwitterApi) throttledQuery() {
 		c.delay_mutex.Lock()
 		delay := c.delay
 		c.delay_mutex.Unlock()
-		time.Sleep(delay)
+		time.Sleep(delay - time.Since(now))
 	}
 }
