@@ -1,15 +1,15 @@
 package anaconda
 
 type TwitterUser struct {
-	Statuses_count                     *float64
+	Statuses_count                     *int64
 	Contributors_enabled               *bool
-	Friends_count                      *float64
+	Friends_count                      *int64
 	Geo_enabled                        *bool
 	Description                        *string
 	Profile_sidebar_border_color       *string
 	Screen_name                        *string
-	Listed_count                       *float64
-	Followers_count                    *float64
+	Listed_count                       *int64
+	Followers_count                    *int64
 	Location                           *string
 	Profile_background_image_url       *string
 	Name                               *string
@@ -22,12 +22,12 @@ type TwitterUser struct {
 	Created_at                         *string
 	Default_profile                    *bool
 	Url                                *string
-	Id                                 *float64
+	Id                                 *int64
 	Verified                           *bool
 	Profile_link_color                 *string
 	Profile_image_url                  *string
 	Profile_use_background_image       *bool
-	Favourites_count                   *float64
+	Favourites_count                   *int64
 	Profile_background_image_url_https *string
 	Profile_sidebar_fill_color         *string
 	Is_translator                      *bool
