@@ -44,6 +44,7 @@ import (
 	"fmt"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -157,7 +158,14 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
 		p, _ := ioutil.ReadAll(resp.Body)
 
-		return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
+		var twitterError TwitterErrorResponse
+		err := json.Unmarshal([]byte(p), &twitterError)
+		if err != nil {
+			log.Printf("Could not even parse error. Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
+			panic(err)
+		}
+		return twitterError
+		//return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
 }
