@@ -13,10 +13,11 @@ func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []TwitterU
 	return
 }
 
-func (a TwitterApi) GetUsersLookupByIds(ids []int, v url.Values) (u []TwitterUser, err error) {
+func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []TwitterUser, err error) {
 	var pids string
 	for w, i := range ids {
-		pids += strconv.Itoa(i)
+		//pids += strconv.Itoa(i)
+		pids += strconv.FormatInt(i, 10)
 		if w != len(ids)-1 {
 			pids += ","
 		}
