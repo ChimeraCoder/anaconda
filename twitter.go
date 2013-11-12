@@ -79,12 +79,16 @@ func SetConsumerSecret(consumer_secret string) {
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
 //Redirect the user to this URL.
 //This assumes that the consumer key has already been set (using SetConsumerKey).
-func AuthorizationURL(callback string) (string, error) {
+func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
 	tempCred, err := oauthClient.RequestTemporaryCredentials(http.DefaultClient, callback, nil)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return oauthClient.AuthorizationURL(tempCred, nil), nil
+	return oauthClient.AuthorizationURL(tempCred, nil), tempCred, nil
+}
+
+func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
+  return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
 }
 
 func cleanValues(v url.Values) url.Values {
