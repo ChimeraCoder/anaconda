@@ -61,12 +61,12 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 
 // Test that setting the delay actually changes the stored delay value
 func Test_TwitterApi_SetDelay(t *testing.T) {
-	const OLD_DELAY = anaconda.DEFAULT_DELAY * time.Second
+	const OLD_DELAY = 1 * time.Second
 	const NEW_DELAY = 20 * time.Second
 	api.EnableRateLimiting(OLD_DELAY, 4)
 
 	delay := api.GetDelay()
-	if delay != anaconda.DEFAULT_DELAY {
+	if delay != OLD_DELAY {
 		t.Errorf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
 	}
 
