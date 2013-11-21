@@ -46,8 +46,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 	"strconv"
+	"time"
 )
 
 var oauthClient = oauth.Client{
@@ -171,7 +171,7 @@ func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.T
 				}
 
 				return true, resetTime
-      }
+			}
 		}
 	}
 
