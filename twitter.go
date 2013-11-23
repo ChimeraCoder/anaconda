@@ -22,7 +22,7 @@
 //      fmt.Print(tweet.Text)
 //  }
 //
-//Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
+//Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter.
 //
 //  v := url.Values{}
 //  v.Set("count", "30")
@@ -88,7 +88,7 @@ func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
 }
 
 func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
-  return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
+	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
 }
 
 func cleanValues(v url.Values) url.Values {
