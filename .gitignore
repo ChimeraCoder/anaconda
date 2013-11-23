@@ -2,3 +2,4 @@
 *.swo
 *.swn
 conf.sh
+*.patch
