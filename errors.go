@@ -22,7 +22,7 @@ const (
 //For the most part, Twitter seems to return only a single error message
 //Currently, we assume that this always contains exactly one error message
 type TwitterErrorResponse struct {
-	errors []TwitterError
+	errors []TwitterError `json:"errors"`
 }
 
 func (tr TwitterErrorResponse) First() error {
@@ -35,8 +35,8 @@ func (tr TwitterErrorResponse) Error() string {
 
 //TwitterError represents a single Twitter error messages/code pair
 type TwitterError struct {
-	Message string
-	Code    int
+	Message string `json:"message"`
+	Code    int    `json:"code"`
 }
 
 func (te TwitterError) Error() string {
