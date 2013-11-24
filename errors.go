@@ -22,15 +22,15 @@ const (
 //For the most part, Twitter seems to return only a single error message
 //Currently, we assume that this always contains exactly one error message
 type TwitterErrorResponse struct {
-	errors []TwitterError `json:"errors"`
+	Errors []TwitterError `json:"errors"`
 }
 
 func (tr TwitterErrorResponse) First() error {
-	return tr.errors[0]
+	return tr.Errors[0]
 }
 
 func (tr TwitterErrorResponse) Error() string {
-	return tr.errors[0].Message
+	return tr.Errors[0].Message
 }
 
 //TwitterError represents a single Twitter error messages/code pair
