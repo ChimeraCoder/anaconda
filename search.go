@@ -17,6 +17,10 @@ func (a TwitterApi) GetSearch(queryString string, v url.Values) (timeline []Twee
 	response_ch := make(chan response)
 	a.queryQueue <- query{"https://api.twitter.com/1.1/search/tweets.json", v, &sr, _GET, response_ch}
 
+	// We have to read from the response channel before assigning to timeline
+	// Otherwise this will happen before the responses have been written
+	resp := <-response_ch
+	err = resp.err
 	timeline = sr.Statuses
-	return timeline, (<-response_ch).err
+	return timeline, err
 }

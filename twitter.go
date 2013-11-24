@@ -86,11 +86,11 @@ const DEFAULT_DELAY = 10 * time.Second
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
-func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
+func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi {
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, DEFAULT_DELAY, sync.Mutex{}}
+	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, DEFAULT_DELAY, sync.Mutex{}}
 	go c.throttledQuery()
 	return c
 }
@@ -107,12 +107,19 @@ func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
 
-//SetDelay will set the delay between throttled queries
-//To turn of throttling, set it to 0 seconds
-func (c TwitterApi) SetDelay(t time.Duration) {
+// SetDelay will set the delay between throttled queries
+// To turn of throttling, set it to 0 seconds
+func (c *TwitterApi) SetDelay(t time.Duration) {
 	c.delay_mutex.Lock()
 	c.delay = t
 	c.delay_mutex.Unlock()
+}
+
+func (c *TwitterApi) GetDelay() time.Duration {
+	c.delay_mutex.Lock()
+	t := c.delay
+	c.delay_mutex.Unlock()
+	return t
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -184,9 +191,9 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 }
 
 //throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
-func (c TwitterApi) throttledQuery() {
+func (c *TwitterApi) throttledQuery() {
 	for q := range c.queryQueue {
-        now := time.Now()
+		now := time.Now()
 		url := q.url
 		form := q.form
 		data := q.data //This is where the actual response will be written
@@ -204,6 +211,7 @@ func (c TwitterApi) throttledQuery() {
 		c.delay_mutex.Lock()
 		delay := c.delay
 		c.delay_mutex.Unlock()
+		log.Printf("Sleeping for %s", delay.String())
 		time.Sleep(delay - time.Since(now))
 	}
 }
