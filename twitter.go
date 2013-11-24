@@ -44,7 +44,6 @@ import (
 	"fmt"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -163,11 +162,12 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
+		// TODO don't ignore this error
+		// TODO don't use ReadAll
 		p, _ := ioutil.ReadAll(resp.Body)
 
 		var twitterError TwitterErrorResponse
-		err := json.Unmarshal([]byte(p), &twitterError)
-		log.Printf("Twitter returned error %s", string(p))
+		err := json.Unmarshal(p, &twitterError)
 		if err != nil {
 			return fmt.Errorf("Could not even parse error. Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
 		}
