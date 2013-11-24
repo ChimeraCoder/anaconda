@@ -5,8 +5,9 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"log"
 	"os"
+	"reflect"
 	"testing"
-	//"time"
+	"time"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -35,7 +36,6 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	}
 }
 
-/*
 // Test that the GetSearch function actually works and returns non-empty results
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
@@ -80,7 +80,7 @@ func Test_TwitterApi_SetDelay(t *testing.T) {
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY_SECONDS = 30
 
-    oldDelay := api.GetDelay()
+	oldDelay := api.GetDelay()
 	api.SetDelay(MIN_DELAY_SECONDS * time.Second)
 
 	now := time.Now()
@@ -101,7 +101,6 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
 }
-**/
 
 func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 
@@ -113,11 +112,19 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 		t.Errorf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
 	}
 
-	terr, ok := err.(anaconda.TwitterError)
+	terr_resp, ok := err.(anaconda.TwitterErrorResponse)
 	if !ok {
-		log.Print(terr.Error())
-		t.Errorf("Expected a TwitterError struct, and received error message %s, (%+v)", terr.Error(), terr)
+		log.Print(terr_resp.Error())
+		log.Print("Error is actually of type %s", reflect.TypeOf(err).String())
+		t.Errorf("Expected a TwitterError struct, and received error message %s, (%+v)", err.Error(), err)
 	}
+
+	terr, ok := terr_resp.First().(anaconda.TwitterError)
+
+	if !ok {
+		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(terr_resp.First()))
+	}
+
 	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
 		if code == anaconda.TwitterErrorRateLimitExceeded {
 			t.Errorf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
