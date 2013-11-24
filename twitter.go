@@ -81,7 +81,7 @@ type response struct {
 	err  error
 }
 
-const DEFAULT_DELAY = 10 * time.Second
+const DEFAULT_DELAY = 0 * time.Second
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
