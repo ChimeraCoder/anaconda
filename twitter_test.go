@@ -3,7 +3,6 @@ package anaconda_test
 import (
 	"fmt"
 	"github.com/ChimeraCoder/anaconda"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -114,8 +113,6 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 
 	terr_resp, ok := err.(anaconda.TwitterErrorResponse)
 	if !ok {
-		log.Print(terr_resp.Error())
-		log.Print("Error is actually of type %s", reflect.TypeOf(err).String())
 		t.Errorf("Expected a TwitterError struct, and received error message %s, (%+v)", err.Error(), err)
 	}
 
