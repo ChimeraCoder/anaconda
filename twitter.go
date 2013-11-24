@@ -167,9 +167,9 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 
 		var twitterError TwitterErrorResponse
 		err := json.Unmarshal([]byte(p), &twitterError)
+		log.Printf("Twitter returned error %s", string(p))
 		if err != nil {
-			log.Printf("Could not even parse error. Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
-			panic(err)
+			return fmt.Errorf("Could not even parse error. Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
 		}
 		return twitterError
 		//return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
@@ -211,7 +211,6 @@ func (c *TwitterApi) throttledQuery() {
 		c.delay_mutex.Lock()
 		delay := c.delay
 		c.delay_mutex.Unlock()
-		log.Printf("Sleeping for %s", delay.String())
 		time.Sleep(delay - time.Since(now))
 	}
 }
