@@ -52,6 +52,31 @@ Anaconda implements most of the endpoints defined in the [Twitter API documentat
 In a few cases, a shortened form has been chosen to make life easier (for example, retweeting is simply the function `Retweet`)
 
 
+Rate Limiting
+------------
+
+
+Anaconda now supports automatic throttling of queries to avoid hitting the Twitter rate-limit.
+
+This is currently *off* by default; however, it may be turned on by default in future versions of the library, as the implementation is improved.
+
+
+To set a delay between queries, use the `SetDelay` method:
+
+````go
+    api.SetDelay(10 * time.Second)
+````
+
+Delays are set specific to each `TwitterApi` struct, so queries that use different users' access credentials are completely independent.
+
+
+To turn off automatic throttling, set the delay to `0`:
+
+````go
+    api.SetDelay(0 * time.Second)
+````
+
+
 
 License
 -----------
