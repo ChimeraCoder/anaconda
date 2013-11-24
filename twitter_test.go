@@ -5,14 +5,40 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"os"
 	"testing"
+	"time"
 )
 
+var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
+var CONSUMER_SECRET = os.Getenv("CONSUMER_SECRET")
+var ACCESS_TOKEN = os.Getenv("ACCESS_TOKEN")
+var ACCESS_TOKEN_SECRET = os.Getenv("ACCESS_TOKEN_SECRET")
+
+var api *anaconda.TwitterApi
+
+// Test_TwitterCredentials tests that non-empty Twitter credentials are set
+// Without this, all following tests will fail
+func Test_TwitterCredentials(t *testing.T) {
+	if CONSUMER_KEY == "" || CONSUMER_SECRET == "" || ACCESS_TOKEN == "" || ACCESS_TOKEN_SECRET == "" {
+		t.Errorf("Credentials are invalid: at least one is empty")
+	}
+}
+
+// Test that creating a TwitterApi client creates a client with non-empty OAuth credentials
+func Test_TwitterApi_NewTwitterApi(t *testing.T) {
+	anaconda.SetConsumerKey(CONSUMER_KEY)
+	anaconda.SetConsumerSecret(CONSUMER_SECRET)
+	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
+	if api.Credentials == nil {
+		t.Errorf("Twitter Api client has empty (nil) credentials")
+	}
+}
+
+// Test that the GetSearch function actually works and returns non-empty results
 func Test_TwitterApi_GetSearch(t *testing.T) {
-	anaconda.SetConsumerKey(os.Getenv("CONSUMER_KEY"))
-	anaconda.SetConsumerSecret(os.Getenv("CONSUMER_SECRET"))
-	api := anaconda.NewTwitterApi(os.Getenv("ACCESS_TOKEN"), os.Getenv("ACCESS_TOKEN_SECRET"))
 	search_result, err := api.GetSearch("golang", nil)
 	if err != nil {
+		t.Errorf("GetSearch yielded error %s", err.Error())
 		panic(err)
 	}
 
@@ -30,6 +56,48 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 	}
 
 	t.Errorf("All %d tweets had empty text", len(search_result))
+}
+
+// Test that setting the delay actually changes the stored delay value
+func Test_TwitterApi_SetDelay(t *testing.T) {
+	const NEW_DELAY = 20 * time.Second
+
+	delay := api.GetDelay()
+	if delay != anaconda.DEFAULT_DELAY {
+		t.Errorf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
+	}
+
+	api.SetDelay(NEW_DELAY)
+
+	if newDelay := api.GetDelay(); newDelay != NEW_DELAY {
+		t.Errorf("Attempted to set delay to %s, but delay is now %s (original delay: %s)", NEW_DELAY, newDelay, delay)
+	}
+}
+
+// Test that the client can be used to throttle to an arbitrary duration
+func Test_TwitterApi_Throttling(t *testing.T) {
+	const MIN_DELAY_SECONDS = 30
+
+	oldDelay = api.GetDelay()
+	api.SetDelay(MIN_DELAY_SECONDS * time.Second)
+
+	now := time.Now()
+	_, err := api.GetSearch("golang", nil)
+	if err != nil {
+		t.Errorf("GetSearch yielded error %s", err.Error())
+	}
+	_, err = api.GetSearch("anaconda", nil)
+	if err != nil {
+		t.Errorf("GetSearch yielded error %s", err.Error())
+	}
+	after := time.Now()
+
+	if difference := after.Sub(now); difference < (30 * time.Second) {
+		t.Errorf("Expected delay of at least %d seconds. Actual delay: %s", MIN_DELAY_SECONDS, difference.String())
+	}
+
+	// Reset the delay to its previous value
+	api.SetDelay(oldDelay)
 }
 
 func ExampleTwitterApi_GetSearch() {
