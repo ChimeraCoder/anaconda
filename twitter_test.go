@@ -2,7 +2,7 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
+  "github.com/ChimeraCoder/anaconda"
 )
 
 func ExampleTwitterApi_GetSearch() {
