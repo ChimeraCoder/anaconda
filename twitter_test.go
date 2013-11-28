@@ -114,15 +114,15 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 		t.Errorf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
 	}
 
-	terr_resp, ok := err.(anaconda.TwitterErrorResponse)
+	apiErr, ok := err.(*anaconda.ApiError)
 	if !ok {
-		t.Errorf("Expected a TwitterError struct, and received error message %s, (%+v)", err.Error(), err)
+		t.Errorf("Expected an *anaconda.ApiError, and received error message %s, (%+v)", err.Error(), err)
 	}
 
-	terr, ok := terr_resp.First().(anaconda.TwitterError)
+	terr, ok := apiErr.Decoded.First().(anaconda.TwitterError)
 
 	if !ok {
-		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(terr_resp.First()))
+		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
 	}
 
 	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
