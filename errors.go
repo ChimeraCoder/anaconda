@@ -35,7 +35,7 @@ type ApiError struct {
 	URL        *url.URL
 }
 
-func NewApiError(resp *http.Response) *ApiError {
+func newApiError(resp *http.Response) *ApiError {
 	// TODO don't ignore this error
 	// TODO don't use ReadAll
 	p, _ := ioutil.ReadAll(resp.Body)

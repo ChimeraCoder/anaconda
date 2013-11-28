@@ -166,7 +166,7 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
-		return NewApiError(resp)
+		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
 }
