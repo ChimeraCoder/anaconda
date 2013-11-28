@@ -1,22 +1,22 @@
 package anaconda
 
 import (
-	"net/url"
 	"net/http"
+	"net/url"
 )
 
 type OEmbed struct {
-	Type string
-	Width int
-	Cache_age string
-	Height int
-	Author_url string
-	Html string
-	Version string
+	Type          string
+	Width         int
+	Cache_age     string
+	Height        int
+	Author_url    string
+	Html          string
+	Version       string
 	Provider_name string
-	Provider_url string
-	Url string
-	Author_name string
+	Provider_url  string
+	Url           string
+	Author_name   string
 }
 
 // No authorization on this endpoint. Its the only one.
