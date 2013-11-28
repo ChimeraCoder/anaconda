@@ -60,17 +60,17 @@ func (aerr *ApiError) Error() string {
 // Use like so:
 //
 //    if aerr, ok := err.(*ApiError); ok {
-//  	  if isRateLimitError, nextWindow := aerr.RateLimitCheck; isRateLimitError {
+//  	  if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
 //       	<-time.After(nextWindow.Sub(time.Now()))
 //  	  }
 //    }
 //
 func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.Time) {
+	// TODO  check for error code 130, which also signifies a rate limit
 	if aerr.StatusCode == 429 {
 		if reset := aerr.Header.Get("X-Rate-Limit-Reset"); reset != "" {
 			if resetUnix, err := strconv.ParseInt(reset, 10, 64); err == nil {
 				resetTime := time.Unix(resetUnix, 0)
-
 				// Reject any time greater than an hour away
 				if resetTime.Sub(time.Now()) > time.Hour {
 					return true, time.Now().Add(15 * time.Minute)

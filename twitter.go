@@ -252,6 +252,18 @@ func (c *TwitterApi) throttledQuery() {
 		}
 
 		err := c.execQuery(url, form, data, method)
+
+		//Check if Twitter returned a rate-limiting error
+		if err != nil {
+			if apiErr, ok := err.(*ApiError); ok {
+				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
+					<-time.After(nextWindow.Sub(time.Now()))
+					// Drain the bucket (start over fresh)
+					c.bucket.Drain()
+				}
+			}
+		}
+
 		response_ch <- struct {
 			data interface{}
 			err  error
