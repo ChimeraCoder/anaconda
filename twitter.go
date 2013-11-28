@@ -42,6 +42,7 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
 	"net/http"
@@ -65,8 +66,7 @@ var oauthClient = oauth.Client{
 type TwitterApi struct {
 	Credentials *oauth.Credentials
 	queryQueue  chan query
-	delay       time.Duration
-	delay_mutex sync.Mutex
+	bucket      *tokenbucket.Bucket
 }
 
 type query struct {
@@ -89,6 +89,7 @@ type ApiError struct {
 	URL        *url.URL
 }
 const DEFAULT_DELAY = 0 * time.Second
+const DEFAULT_CAPACITY = 5
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
@@ -96,7 +97,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, DEFAULT_DELAY, sync.Mutex{}}
+	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil}
 	go c.throttledQuery()
 	return c
 }
@@ -113,19 +114,24 @@ func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
 
+// Enable rate limiting using the tokenbucket algorithm
+func (c *TwitterApi) EnableRateLimiting(rate time.Duration, bufferSize int64) {
+	c.bucket = tokenbucket.NewBucket(rate, bufferSize)
+}
+
+// Disable rate limiting
+func (c *TwitterApi) DisableRateLimiting() {
+	c.bucket = nil
+}
+
 // SetDelay will set the delay between throttled queries
 // To turn of throttling, set it to 0 seconds
 func (c *TwitterApi) SetDelay(t time.Duration) {
-	c.delay_mutex.Lock()
-	c.delay = t
-	c.delay_mutex.Unlock()
+	c.bucket.SetRate(t)
 }
 
 func (c *TwitterApi) GetDelay() time.Duration {
-	c.delay_mutex.Lock()
-	t := c.delay
-	c.delay_mutex.Unlock()
-	return t
+	return c.bucket.GetRate()
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -245,7 +251,6 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 //throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
 func (c *TwitterApi) throttledQuery() {
 	for q := range c.queryQueue {
-		now := time.Now()
 		url := q.url
 		form := q.form
 		data := q.data //This is where the actual response will be written
@@ -253,16 +258,14 @@ func (c *TwitterApi) throttledQuery() {
 
 		response_ch := q.response_ch
 
+		if c.bucket != nil {
+			<-c.bucket.SpendToken(1)
+		}
+
 		err := c.execQuery(url, form, data, method)
 		response_ch <- struct {
 			data interface{}
 			err  error
 		}{data, err}
-
-		//We have to hold a mutex because the delay time may have changed
-		c.delay_mutex.Lock()
-		delay := c.delay
-		c.delay_mutex.Unlock()
-		time.Sleep(delay - time.Since(now))
 	}
 }

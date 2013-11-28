@@ -61,7 +61,9 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 
 // Test that setting the delay actually changes the stored delay value
 func Test_TwitterApi_SetDelay(t *testing.T) {
+	const OLD_DELAY = anaconda.DEFAULT_DELAY * time.Second
 	const NEW_DELAY = 20 * time.Second
+	api.EnableRateLimiting(OLD_DELAY, 4)
 
 	delay := api.GetDelay()
 	if delay != anaconda.DEFAULT_DELAY {
@@ -77,10 +79,11 @@ func Test_TwitterApi_SetDelay(t *testing.T) {
 
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
-	const MIN_DELAY_SECONDS = 30
+	const MIN_DELAY = 30 * time.Second
 
+	api.EnableRateLimiting(MIN_DELAY, 5)
 	oldDelay := api.GetDelay()
-	api.SetDelay(MIN_DELAY_SECONDS * time.Second)
+	api.SetDelay(MIN_DELAY)
 
 	now := time.Now()
 	_, err := api.GetSearch("golang", nil)
@@ -94,7 +97,7 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 	after := time.Now()
 
 	if difference := after.Sub(now); difference < (30 * time.Second) {
-		t.Errorf("Expected delay of at least %d seconds. Actual delay: %s", MIN_DELAY_SECONDS, difference.String())
+		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
 	}
 
 	// Reset the delay to its previous value
