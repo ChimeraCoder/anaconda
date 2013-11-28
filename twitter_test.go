@@ -16,6 +16,13 @@ var ACCESS_TOKEN_SECRET = os.Getenv("ACCESS_TOKEN_SECRET")
 
 var api *anaconda.TwitterApi
 
+func init() {
+	// Initialize api so it can be used even when invidual tests are run in isolation
+	anaconda.SetConsumerKey(CONSUMER_KEY)
+	anaconda.SetConsumerSecret(CONSUMER_SECRET)
+	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+}
+
 // Test_TwitterCredentials tests that non-empty Twitter credentials are set
 // Without this, all following tests will fail
 func Test_TwitterCredentials(t *testing.T) {
