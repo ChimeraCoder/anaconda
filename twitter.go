@@ -184,7 +184,9 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 	}
 }
 
-//throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
+// throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
+// It is the only function that reads from the queryQueue for a particular *TwitterApi struct
+
 func (c *TwitterApi) throttledQuery() {
 	for q := range c.queryQueue {
 		url := q.url
@@ -200,20 +202,24 @@ func (c *TwitterApi) throttledQuery() {
 
 		err := c.execQuery(url, form, data, method)
 
-		//Check if Twitter returned a rate-limiting error
+		// Check if Twitter returned a rate-limiting error
 		if err != nil {
 			if apiErr, ok := err.(*ApiError); ok {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
+					// If this is a rate-limiting error, re-add the job to the queue
+					// TODO it really should preserve order
+					c.QueryQueue <- q
 					<-time.After(nextWindow.Sub(time.Now()))
 					// Drain the bucket (start over fresh)
 					c.bucket.Drain()
 				}
 			}
-		}
+		} else {
 
-		response_ch <- struct {
-			data interface{}
-			err  error
-		}{data, err}
+			response_ch <- struct {
+				data interface{}
+				err  error
+			}{data, err}
+		}
 	}
 }
