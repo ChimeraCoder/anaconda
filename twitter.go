@@ -44,10 +44,8 @@ import (
 	"fmt"
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -83,13 +81,6 @@ type response struct {
 
 const DEFAULT_DELAY = 0 * time.Second
 const DEFAULT_CAPACITY = 5
-
-type ApiError struct {
-	StatusCode int
-	Header     http.Header
-	Body       string
-	URL        *url.URL
-}
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
@@ -175,17 +166,7 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
-		// TODO don't ignore this error
-		// TODO don't use ReadAll
-		p, _ := ioutil.ReadAll(resp.Body)
-
-		var twitterError TwitterErrorResponse
-		err := json.Unmarshal(p, &twitterError)
-		if err != nil {
-			return fmt.Errorf("Could not even parse error. Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
-		}
-		return twitterError
-		//return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
+		return NewApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
 }
@@ -223,47 +204,4 @@ func (c *TwitterApi) throttledQuery() {
 			err  error
 		}{data, err}
 	}
-}
-
-func NewApiError(resp *http.Response) *ApiError {
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	return &ApiError{
-		StatusCode: resp.StatusCode,
-		Header:     resp.Header,
-		Body:       string(body),
-		URL:        resp.Request.URL,
-	}
-}
-
-func (aerr *ApiError) Error() string {
-	return fmt.Sprintf("Get %s returned status %d, %s", aerr.URL, aerr.StatusCode, aerr.Body)
-}
-
-// Check to see if an error is a Rate Limiting error. If so, find the next available window in the header.
-// Use like so:
-//
-//    if aerr, ok := err.(*ApiError); ok {
-//  	  if isRateLimitError, nextWindow := aerr.RateLimitCheck; isRateLimitError {
-//       	time.Sleep(nextWindow.Sub(time.Now()))
-//  	  }
-//    }
-//
-func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.Time) {
-	if aerr.StatusCode == 429 {
-		if reset := aerr.Header.Get("X-Rate-Limit-Reset"); reset != "" {
-			if resetUnix, err := strconv.ParseInt(reset, 10, 64); err == nil {
-				resetTime := time.Unix(resetUnix, 0)
-
-				// Reject any time greater than an hour away
-				if resetTime.Sub(time.Now()) > time.Hour {
-					return true, time.Now().Add(15 * time.Minute)
-				}
-
-				return true, resetTime
-			}
-		}
-	}
-
-	return false, time.Time{}
 }
