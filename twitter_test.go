@@ -142,6 +142,42 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 	}
 }
 
+// Test that a valid user can be fetched
+// and that unmarshalling works properly
+func Test_GetUser(t *testing.T) {
+	const username = "chimeracoder"
+
+	users, err := api.GetUsersLookup(username, nil)
+	if err != nil {
+		t.Errorf("GetUsersLookup returned error: %s", err.Error())
+	}
+
+	if len(users) != 1 {
+		t.Errorf("Expected one user and received %d", len(users))
+	}
+
+	if !reflect.DeepEqual(users[0], anaconda.TwitterUser{}) {
+		t.Errorf("Received %+v", users[0])
+	}
+
+}
+
+// Test that a valid tweet can be fetched properly
+// and that unmarshalling of tweet works without error
+func Test_GetTweet(t *testing.T) {
+	const tweetId = 303777106620452864
+	const tweetText = `golang-syd is in session. Dave Symonds is now talking about API design and protobufs. #golang http://t.co/eSq3ROwu`
+
+	tweet, err := api.GetTweet(tweetId, nil)
+	if err != nil {
+		t.Errorf("GetTweet returned error: %s", err.Error())
+	}
+
+	if tweet.Text != tweetText {
+		t.Errorf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
+	}
+}
+
 func ExampleTwitterApi_GetSearch() {
 
 	anaconda.SetConsumerKey("your-consumer-key")
