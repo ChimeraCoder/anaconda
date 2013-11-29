@@ -208,7 +208,7 @@ func (c *TwitterApi) throttledQuery() {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
-					c.QueryQueue <- q
+					c.queryQueue <- q
 					<-time.After(nextWindow.Sub(time.Now()))
 					// Drain the bucket (start over fresh)
 					c.bucket.Drain()
