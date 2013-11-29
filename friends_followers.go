@@ -30,6 +30,11 @@ type Friendship struct {
 	Screen_name string
 }
 
+type FollowersPage struct {
+	Followers []TwitterUser
+	Error     error
+}
+
 //GetFriendshipsNoRetweets s a collection of user_ids that the currently authenticated user does not want to receive retweets from.
 //It does not currently support the stringify_ids parameter
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
@@ -71,4 +76,35 @@ func (a TwitterApi) GetFollowersList(v url.Values) (c TwitterUserCursor, err err
 	response_ch := make(chan response)
 	a.queryQueue <- query{"https://api.twitter.com/1.1/followers/list.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
+}
+
+// Like GetFollowersList, but returns a channel instead of a cursor and pre-fetches the remaining results
+// This channel is closed once all values have been fetched
+func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage) {
+
+	result = make(chan FollowersPage)
+
+	if v == nil {
+		v = url.Values{}
+	}
+	go func(a TwitterApi, v url.Values, result chan FollowersPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetFollowersList(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFollowersList() returns an error, it must be a different kind of error
+
+			result <- FollowersPage{c.Users, err}
+
+			next_cursor = c.Next_cursor_str
+			if next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
 }

@@ -177,3 +177,24 @@ func Test_GetTweet(t *testing.T) {
 		t.Errorf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
 	}
 }
+
+// This assumes that the current user has at least two pages' worth of followers
+func Test_GetFollowersListAll(t *testing.T) {
+	result := api.GetFollowersListAll(nil)
+	i := 0
+
+	for page := range result {
+		if i == 2 {
+			return
+		}
+
+		if page.Error != nil {
+			t.Errorf("Receved error from GetFollowersListAll: %s", page.Error)
+		}
+
+		if page.Followers == nil || len(page.Followers) == 0 {
+			t.Errorf("Received invalid value for page %d of followers: %v", i, page.Followers)
+		}
+		i++
+	}
+}
