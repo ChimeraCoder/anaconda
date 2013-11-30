@@ -44,6 +44,7 @@ import (
 	"fmt"
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -208,14 +209,22 @@ func (c *TwitterApi) throttledQuery() {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
-					c.queryQueue <- q
-					<-time.After(nextWindow.Sub(time.Now()))
+					log.Printf("Hit rate-limiting error - next window is %s", nextWindow.String())
+					log.Printf("Query was %s %s", q.url, q.form)
+					go func() {
+						c.queryQueue <- q
+					}()
+
+					delay := nextWindow.Sub(time.Now())
+					log.Printf("Sleeping for about %s", delay.String())
+					<-time.After(delay)
 					// Drain the bucket (start over fresh)
 					c.bucket.Drain()
 				}
 			}
 		} else {
 
+			log.Printf("Successfully executed query %s %s", q.url, q.form)
 			response_ch <- struct {
 				data interface{}
 				err  error
