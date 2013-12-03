@@ -1,7 +1,6 @@
 package anaconda
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -24,7 +23,6 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []TwitterU
 	}
 	v = cleanValues(v)
 	v.Set("user_id", pids)
-	fmt.Println("Foo!", pids)
 	err = a.apiGet("http://api.twitter.com/1.1/users/lookup.json", v, &u)
 	return
 }
