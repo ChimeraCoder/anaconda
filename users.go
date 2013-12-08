@@ -28,3 +28,12 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []TwitterU
 	err = a.apiGet("http://api.twitter.com/1.1/users/lookup.json", v, &u)
 	return
 }
+
+func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []TwitterUser, err error) {
+  v = cleanValues(v)
+  v.Set("q", searchTerm)
+  // Set other values before calling this method:
+  // page, count, include_entities
+  err = a.apiGet("http://api.twitter.com/1.1/users/search.json", v, &u)
+  return
+}
