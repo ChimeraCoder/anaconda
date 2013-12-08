@@ -43,3 +43,14 @@ func (a TwitterApi) GetUsersShowById(id int64, v url.Values) (u User, err error)
 	a.queryQueue <- query{BaseUrl + "/users/show.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }
+
+
+func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []TwitterUser, err error) {
+    v = cleanValues(v)
+    v.Set("q", searchTerm)
+    // Set other values before calling this method:
+    // page, count, include_entities
+    err = a.apiGet("http://api.twitter.com/1.1/users/search.json", v, &u)
+    return
+}
+
