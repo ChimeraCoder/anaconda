@@ -1,7 +1,7 @@
 package anaconda
 
 import (
-    "time"
+	"time"
 )
 
 type Tweet struct {
@@ -19,6 +19,6 @@ type Tweet struct {
 }
 
 // CreatedAtTime is a convenience wrapper that returns the Created_at time, parsed as a time.Time struct
-func (t Tweet) CreatedAtTime() (time.Time, error){
-    return time.Parse(time.RubyDate, t.Created_at)
+func (t Tweet) CreatedAtTime() (time.Time, error) {
+	return time.Parse(time.RubyDate, t.Created_at)
 }
