@@ -18,22 +18,22 @@ type TwitterEntities struct {
 		Id          int64
 		Id_str      string
 	}
-        Media []struct {
-                Id              int64
-                Id_str          string
-                Media_url       string
-                Media_url_https string
-                Url             string
-                Display_url     string
-                Expanded_url    string
-                Sizes           MediaSizes
-                Type            string
-                Indices         []int
-        }
+	Media []struct {
+		Id              int64
+		Id_str          string
+		Media_url       string
+		Media_url_https string
+		Url             string
+		Display_url     string
+		Expanded_url    string
+		Sizes           MediaSizes
+		Type            string
+		Indices         []int
+	}
 }
 
 type MediaSizes struct {
-        w int
-        h int
-        resize string
+	w      int
+	h      int
+	resize string
 }
