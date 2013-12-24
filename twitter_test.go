@@ -176,6 +176,52 @@ func Test_GetTweet(t *testing.T) {
 	if tweet.Text != tweetText {
 		t.Errorf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
 	}
+
+	// Check the entities
+	expectedEntities := anaconda.TwitterEntities{Hashtags: []struct {
+		Indices []int
+		Text    string
+	}{struct {
+		Indices []int
+		Text    string
+	}{Indices: []int{86, 93}, Text: "golang"}}, Urls: []struct {
+		Indices      []int
+		Url          string
+		Display_url  string
+		Expanded_url string
+	}{}, User_mentions: []struct {
+		Name        string
+		Indices     []int
+		Screen_name string
+		Id          int64
+		Id_str      string
+	}{}, Media: []struct {
+		Id              int64
+		Id_str          string
+		Media_url       string
+		Media_url_https string
+		Url             string
+		Display_url     string
+		Expanded_url    string
+		Sizes           anaconda.MediaSizes
+		Type            string
+		Indices         []int
+	}{struct {
+		Id              int64
+		Id_str          string
+		Media_url       string
+		Media_url_https string
+		Url             string
+		Display_url     string
+		Expanded_url    string
+		Sizes           anaconda.MediaSizes
+		Type            string
+		Indices         []int
+	}{Id: 303777106628841472, Id_str: "303777106628841472", Media_url: "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Url: "http://t.co/eSq3ROwu", Display_url: "pic.twitter.com/eSq3ROwu", Expanded_url: "http://twitter.com/golang/status/303777106620452864/photo/1", Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600, H: 450, Resize: "fit"}, Thumb: anaconda.MediaSize{W: 150, H: 150, Resize: "crop"}, Small: anaconda.MediaSize{W: 340, H: 255, Resize: "fit"}, Large: anaconda.MediaSize{W: 1024, H: 768, Resize: "fit"}}, Type: "photo", Indices: []int{94, 114}}}}
+	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
+		t.Errorf("Tweet entities differ")
+	}
+
 }
 
 // This assumes that the current user has at least two pages' worth of followers

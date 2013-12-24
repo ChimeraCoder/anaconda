@@ -33,7 +33,14 @@ type TwitterEntities struct {
 }
 
 type MediaSizes struct {
-	w      int
-	h      int
-	resize string
+	Medium MediaSize
+	Thumb  MediaSize
+	Small  MediaSize
+	Large  MediaSize
+}
+
+type MediaSize struct {
+	W      int
+	H      int
+	Resize string
 }
