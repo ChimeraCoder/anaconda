@@ -44,7 +44,7 @@ func (a TwitterApi) DeleteTweet(id int64, trimUser bool) (tweet Tweet, err error
 
 //Retweet will retweet the status (tweet) with the specified ID.
 //trimUser functions as in DeleteTweet
-func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Retweet, err error) {
+func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 	v := url.Values{}
 	if trimUser {
 		v.Set("trim_user", "t")

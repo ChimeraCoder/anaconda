@@ -225,6 +225,7 @@ func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.T
 	}
 
 	return false, time.Time{}
+}
 //query executes a query to the specified url, sending the values specified by form, and decodes the response JSON to data
 //method can be either _GET or _POST
 func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, method int) error {
