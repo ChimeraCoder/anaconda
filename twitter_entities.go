@@ -1,6 +1,6 @@
 package anaconda
 
-type TwitterEntities struct {
+type Entities struct {
 	Hashtags []struct {
 		Indices []int
 		Text    string
