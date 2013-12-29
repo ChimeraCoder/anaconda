@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []TwitterUser, err error) {
+func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []User, err error) {
 	v = cleanValues(v)
 	v.Set("screen_name", usernames)
 	response_ch := make(chan response)

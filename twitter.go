@@ -259,7 +259,6 @@ func (c *TwitterApi) throttledQuery() {
 
 		// Check if Twitter returned a rate-limiting error
 		if err != nil {
-			log.Printf("Error is not nil")
 			if apiErr, ok := err.(*ApiError); ok {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
 					// If this is a rate-limiting error, re-add the job to the queue
@@ -268,9 +267,7 @@ func (c *TwitterApi) throttledQuery() {
 					log.Printf("Query was %s %s", q.url, q.form)
 
 					go func() {
-						log.Printf("Writing to query queue")
 						c.queryQueue <- q
-						log.Printf("Just wrote to query queue")
 					}()
 
 					log.Printf("Continuing after goroutine")
@@ -290,7 +287,6 @@ func (c *TwitterApi) throttledQuery() {
 			}
 		} else {
 
-			log.Printf("Successfully executed query %s %s", q.url, q.form)
 			response_ch <- struct {
 				data interface{}
 				err  error

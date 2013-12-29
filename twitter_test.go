@@ -156,8 +156,10 @@ func Test_GetUser(t *testing.T) {
 		t.Errorf("Expected one user and received %d", len(users))
 	}
 
-	if !reflect.DeepEqual(users[0], anaconda.TwitterUser{}) {
-		t.Errorf("Received %+v", users[0])
+	// If all attributes are equal to the zero value for that type,
+	// then the original value was not valid
+	if reflect.DeepEqual(users[0], anaconda.User{}) {
+		t.Errorf("Received %#v", users[0])
 	}
 
 }
@@ -178,7 +180,7 @@ func Test_GetTweet(t *testing.T) {
 	}
 
 	// Check the entities
-	expectedEntities := anaconda.TwitterEntities{Hashtags: []struct {
+	expectedEntities := anaconda.Entities{Hashtags: []struct {
 		Indices []int
 		Text    string
 	}{struct {

@@ -1,6 +1,6 @@
 package anaconda
 
-type TwitterUser struct {
+type User struct {
 	ContributorsEnabled            bool   `json:"contributors_enabled"`
 	CreatedAt                      string `json:"created_at"`
 	DefaultProfile                 bool   `json:"default_profile"`
