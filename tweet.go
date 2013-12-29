@@ -11,7 +11,7 @@ type Tweet struct {
 	Entities             Entities    `json:"entities"`
 	Favorited            bool        `json:"favorited"`
 	Geo                  interface{} `json:"geo"`
-	ID                   int64       `json:"id"`
+	Id                   int64       `json:"id"`
 	IdStr                string      `json:"id_str"`
 	InReplyToScreenName  string      `json:"in_reply_to_screen_name"`
 	InReplyToStatusID    int64       `json:"in_reply_to_status_id"`
