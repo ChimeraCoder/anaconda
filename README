@@ -1,6 +1,7 @@
 Anaconda
 ====================
 
+[![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
 
@@ -23,7 +24,7 @@ api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
 
 ### Queries
 
-Queries are conducted using the authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
+Queries are conducted using a pointer to an authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
 
 ````go
 searchResult, _ := api.GetSearch("golang", nil)
