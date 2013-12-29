@@ -44,10 +44,9 @@ import (
 	"fmt"
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
-	"sync"
 	"time"
 )
 
@@ -81,12 +80,6 @@ type response struct {
 	err  error
 }
 
-type ApiError struct {
-	StatusCode int
-	Header     http.Header
-	Body       string
-	URL        *url.URL
-}
 const DEFAULT_DELAY = 0 * time.Second
 const DEFAULT_CAPACITY = 5
 
@@ -194,37 +187,6 @@ func NewApiError(resp *http.Response) *ApiError {
 	}
 }
 
-func (aerr *ApiError) Error() string {
-	return fmt.Sprintf("Get %s returned status %d, %s", aerr.URL, aerr.StatusCode, aerr.Body)
-}
-
-// Check to see if an error is a Rate Limiting error. If so, find the next available window in the header.
-// Use like so:
-//
-//    if aerr, ok := err.(*ApiError); ok {
-//  	  if isRateLimitError, nextWindow := aerr.RateLimitCheck; isRateLimitError {
-//       	time.Sleep(nextWindow.Sub(time.Now()))
-//  	  }
-//    }
-//
-func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.Time) {
-	if aerr.StatusCode == 429 {
-		if reset := aerr.Header.Get("X-Rate-Limit-Reset"); reset != "" {
-			if resetUnix, err := strconv.ParseInt(reset, 10, 64); err == nil {
-				resetTime := time.Unix(resetUnix, 0)
-
-				// Reject any time greater than an hour away
-				if resetTime.Sub(time.Now()) > time.Hour {
-					return true, time.Now().Add(15 * time.Minute)
-				}
-
-				return true, resetTime
-			}
-		}
-	}
-
-	return false, time.Time{}
-}
 //query executes a query to the specified url, sending the values specified by form, and decodes the response JSON to data
 //method can be either _GET or _POST
 func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, method int) error {

@@ -13,7 +13,7 @@ func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []User, er
 	return u, (<-response_ch).err
 }
 
-func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []TwitterUser, err error) {
+func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []User, err error) {
 	var pids string
 	for w, i := range ids {
 		//pids += strconv.Itoa(i)
