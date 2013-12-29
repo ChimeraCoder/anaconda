@@ -14,12 +14,12 @@ type Cursor struct {
 	Next_cursor_str string
 }
 
-type TwitterUserCursor struct {
+type UserCursor struct {
 	Previous_cursor     int64
 	Previous_cursor_str string
 	Next_cursor         int64
 	Next_cursor_str     string
-	Users               []TwitterUser
+	Users               []User
 }
 
 type Friendship struct {
@@ -31,7 +31,7 @@ type Friendship struct {
 }
 
 type FollowersPage struct {
-	Followers []TwitterUser
+	Followers []User
 	Error     error
 }
 
@@ -67,7 +67,7 @@ func (a TwitterApi) GetFriendshipsOutgoing(v url.Values) (c Cursor, err error) {
 	return c, (<-response_ch).err
 }
 
-func (a TwitterApi) GetFollowersList(v url.Values) (c TwitterUserCursor, err error) {
+func (a TwitterApi) GetFollowersList(v url.Values) (c UserCursor, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{"https://api.twitter.com/1.1/followers/list.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err

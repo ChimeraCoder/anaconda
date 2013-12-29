@@ -25,7 +25,7 @@ type Tweet struct {
 	Source               string      `json:"source"`
 	Text                 string      `json:"text"`
 	Truncated            bool        `json:"truncated"`
-	User                 TwitterUser `json:"user"`
+	User                 User        `json:"user"`
 }
 
 // CreatedAtTime is a convenience wrapper that returns the Created_at time, parsed as a time.Time struct
