@@ -66,82 +66,6 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 	t.Errorf("All %d tweets had empty text", len(search_result))
 }
 
-// Test that setting the delay actually changes the stored delay value
-func Test_TwitterApi_SetDelay(t *testing.T) {
-	const OLD_DELAY = 1 * time.Second
-	const NEW_DELAY = 20 * time.Second
-	api.EnableRateLimiting(OLD_DELAY, 4)
-
-	delay := api.GetDelay()
-	if delay != OLD_DELAY {
-		t.Errorf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
-	}
-
-	api.SetDelay(NEW_DELAY)
-
-	if newDelay := api.GetDelay(); newDelay != NEW_DELAY {
-		t.Errorf("Attempted to set delay to %s, but delay is now %s (original delay: %s)", NEW_DELAY, newDelay, delay)
-	}
-}
-
-// Test that the client can be used to throttle to an arbitrary duration
-func Test_TwitterApi_Throttling(t *testing.T) {
-	const MIN_DELAY = 30 * time.Second
-
-	api.EnableRateLimiting(MIN_DELAY, 5)
-	oldDelay := api.GetDelay()
-	api.SetDelay(MIN_DELAY)
-
-	now := time.Now()
-	_, err := api.GetSearch("golang", nil)
-	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
-	}
-	_, err = api.GetSearch("anaconda", nil)
-	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
-	}
-	after := time.Now()
-
-	if difference := after.Sub(now); difference < (30 * time.Second) {
-		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
-	}
-
-	// Reset the delay to its previous value
-	api.SetDelay(oldDelay)
-}
-
-func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
-
-	// Try fetching a tweet that no longer exists (was deleted)
-	const DELETED_TWEET_ID = 404409873170841600
-
-	tweet, err := api.GetTweet(DELETED_TWEET_ID, nil)
-	if err == nil {
-		t.Errorf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
-	}
-
-	apiErr, ok := err.(*anaconda.ApiError)
-	if !ok {
-		t.Errorf("Expected an *anaconda.ApiError, and received error message %s, (%+v)", err.Error(), err)
-	}
-
-	terr, ok := apiErr.Decoded.First().(anaconda.TwitterError)
-
-	if !ok {
-		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
-	}
-
-	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
-		if code == anaconda.TwitterErrorRateLimitExceeded {
-			t.Errorf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
-		} else {
-
-			t.Errorf("Expected Twitter to return error code %d, and instead received error code %d", anaconda.TwitterErrorDoesNotExist, code)
-		}
-	}
-}
-
 // Test that a valid user can be fetched
 // and that unmarshalling works properly
 func Test_GetUser(t *testing.T) {
@@ -245,4 +169,80 @@ func Test_GetFollowersListAll(t *testing.T) {
 		}
 		i++
 	}
+}
+
+// Test that setting the delay actually changes the stored delay value
+func Test_TwitterApi_SetDelay(t *testing.T) {
+	const OLD_DELAY = 1 * time.Second
+	const NEW_DELAY = 20 * time.Second
+	api.EnableThrottling(OLD_DELAY, 4)
+
+	delay := api.GetDelay()
+	if delay != OLD_DELAY {
+		t.Errorf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
+	}
+
+	api.SetDelay(NEW_DELAY)
+
+	if newDelay := api.GetDelay(); newDelay != NEW_DELAY {
+		t.Errorf("Attempted to set delay to %s, but delay is now %s (original delay: %s)", NEW_DELAY, newDelay, delay)
+	}
+}
+
+func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
+
+	// Try fetching a tweet that no longer exists (was deleted)
+	const DELETED_TWEET_ID = 404409873170841600
+
+	tweet, err := api.GetTweet(DELETED_TWEET_ID, nil)
+	if err == nil {
+		t.Errorf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
+	}
+
+	apiErr, ok := err.(*anaconda.ApiError)
+	if !ok {
+		t.Errorf("Expected an *anaconda.ApiError, and received error message %s, (%+v)", err.Error(), err)
+	}
+
+	terr, ok := apiErr.Decoded.First().(anaconda.TwitterError)
+
+	if !ok {
+		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
+	}
+
+	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
+		if code == anaconda.TwitterErrorRateLimitExceeded {
+			t.Errorf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
+		} else {
+
+			t.Errorf("Expected Twitter to return error code %d, and instead received error code %d", anaconda.TwitterErrorDoesNotExist, code)
+		}
+	}
+}
+
+// Test that the client can be used to throttle to an arbitrary duration
+func Test_TwitterApi_Throttling(t *testing.T) {
+	const MIN_DELAY = 15 * time.Second
+
+	api.EnableThrottling(MIN_DELAY, 5)
+	oldDelay := api.GetDelay()
+	api.SetDelay(MIN_DELAY)
+
+	now := time.Now()
+	_, err := api.GetSearch("golang", nil)
+	if err != nil {
+		t.Errorf("GetSearch yielded error %s", err.Error())
+	}
+	_, err = api.GetSearch("anaconda", nil)
+	if err != nil {
+		t.Errorf("GetSearch yielded error %s", err.Error())
+	}
+	after := time.Now()
+
+	if difference := after.Sub(now); difference < MIN_DELAY {
+		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
+	}
+
+	// Reset the delay to its previous value
+	api.SetDelay(oldDelay)
 }

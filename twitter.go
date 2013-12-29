@@ -62,9 +62,10 @@ var oauthClient = oauth.Client{
 }
 
 type TwitterApi struct {
-	Credentials *oauth.Credentials
-	queryQueue  chan query
-	bucket      *tokenbucket.Bucket
+	Credentials          *oauth.Credentials
+	queryQueue           chan query
+	bucket               *tokenbucket.Bucket
+	returnRateLimitError bool
 }
 
 type query struct {
@@ -89,7 +90,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil}
+	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false}
 	go c.throttledQuery()
 	return c
 }
@@ -106,13 +107,20 @@ func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
 
-// Enable rate limiting using the tokenbucket algorithm
-func (c *TwitterApi) EnableRateLimiting(rate time.Duration, bufferSize int64) {
+// ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
+// If set to true, the query will fail and return the error instead of automatically queuing and
+// retrying the query when the rate limit expires
+func (c *TwitterApi) ReturnRateLimitError(b bool) {
+	c.returnRateLimitError = b
+}
+
+// Enable query throttling using the tokenbucket algorithm
+func (c *TwitterApi) EnableThrottling(rate time.Duration, bufferSize int64) {
 	c.bucket = tokenbucket.NewBucket(rate, bufferSize)
 }
 
-// Disable rate limiting
-func (c *TwitterApi) DisableRateLimiting() {
+// Disable query throttling
+func (c *TwitterApi) DisableThrottling() {
 	c.bucket = nil
 }
 
@@ -221,7 +229,7 @@ func (c *TwitterApi) throttledQuery() {
 		// Check if Twitter returned a rate-limiting error
 		if err != nil {
 			if apiErr, ok := err.(*ApiError); ok {
-				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError {
+				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError && !c.returnRateLimitError {
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
 					go func() {

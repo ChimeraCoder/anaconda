@@ -53,15 +53,21 @@ In a few cases, a shortened form has been chosen to make life easier (for exampl
 
 
 
-Error Handling and Rate Limiting
+Error Handling, Rate Limiting, and Throttling
 ---------------------------------
+
+###Error Handling
 
 Twitter errors are returned as an `ApiError`, which satisfies the `error` interface and can be treated as a vanilla `error`. However, it also contains the additional information returned by the Twitter API that may be useful in deciding how to proceed after encountering an error.
 
 
-If you make queries too quickly, you may bump against Twitter's [rate limits](https://dev.twitter.com/docs/rate-limiting/1.1). If this happens, `anaconda` automatically retry the query when the rate limit resets, using the `X-Rate-Limit-Reset` header that Twitter provides to determine how long to wait.
+If you make queries too quickly, you may bump against Twitter's [rate limits](https://dev.twitter.com/docs/rate-limiting/1.1). If this happens, `anaconda` automatically retries the query when the rate limit resets, using the `X-Rate-Limit-Reset` header that Twitter provides to determine how long to wait.
 
 In other words, users of the `anaconda` library should not need to handle rate limiting errors themselves; this is handled seamlessly behind-the-scenes. If an error is returned by a function, another form of error must have occurred (which can be checked by using the fields provided by the `ApiError` struct).
+
+
+(If desired, this feature can be turned off by calling `ReturnRateLimitError(true)`.)
+
 
 ###Throttling
 

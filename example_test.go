@@ -29,10 +29,10 @@ func ExampleTwitterApi_GetSearch() {
 	}
 }
 
-// Rate-limiting can easily be handled in the background, automatically
-func ExampleTwitterApi_RateLimiting() {
+// Throttling queries can easily be handled in the background, automatically
+func ExampleTwitterApi_Throttling() {
 	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
-	api.EnableRateLimiting(10*time.Second, 5)
+	api.EnableThrottling(10*time.Second, 5)
 
 	// These queries will execute in order
 	// with appropriate delays inserted only if necessary
