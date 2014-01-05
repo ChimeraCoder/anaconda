@@ -9,6 +9,7 @@ type Tweet struct {
 	Coordinates          interface{} `json:"coordinates"`
 	CreatedAt            string      `json:"created_at"`
 	Entities             Entities    `json:"entities"`
+	FavoriteCount        int         `json:"favorite_count"`
 	Favorited            bool        `json:"favorited"`
 	Geo                  interface{} `json:"geo"`
 	Id                   int64       `json:"id"`
