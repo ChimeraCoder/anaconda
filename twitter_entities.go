@@ -1,6 +1,6 @@
 package anaconda
 
-type TwitterEntities struct {
+type Entities struct {
 	Hashtags []struct {
 		Indices []int
 		Text    string
@@ -18,4 +18,29 @@ type TwitterEntities struct {
 		Id          int64
 		Id_str      string
 	}
+	Media []struct {
+		Id              int64
+		Id_str          string
+		Media_url       string
+		Media_url_https string
+		Url             string
+		Display_url     string
+		Expanded_url    string
+		Sizes           MediaSizes
+		Type            string
+		Indices         []int
+	}
+}
+
+type MediaSizes struct {
+	Medium MediaSize
+	Thumb  MediaSize
+	Small  MediaSize
+	Large  MediaSize
+}
+
+type MediaSize struct {
+	W      int
+	H      int
+	Resize string
 }

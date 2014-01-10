@@ -22,7 +22,7 @@
 //      fmt.Print(tweet.Text)
 //  }
 //
-//Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
+//Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter.
 //
 //  v := url.Values{}
 //  v.Set("count", "30")
@@ -42,10 +42,17 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
+)
+
+const (
+	_GET  = iota
+	_POST = iota
 )
 
 var oauthClient = oauth.Client{
@@ -55,13 +62,37 @@ var oauthClient = oauth.Client{
 }
 
 type TwitterApi struct {
-	Credentials *oauth.Credentials
+	Credentials          *oauth.Credentials
+	queryQueue           chan query
+	bucket               *tokenbucket.Bucket
+	returnRateLimitError bool
 }
+
+type query struct {
+	url         string
+	form        url.Values
+	data        interface{}
+	method      int
+	response_ch chan response
+}
+
+type response struct {
+	data interface{}
+	err  error
+}
+
+const DEFAULT_DELAY = 0 * time.Second
+const DEFAULT_CAPACITY = 5
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
-func NewTwitterApi(access_token string, access_token_secret string) TwitterApi {
-	return TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}}
+func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi {
+	//TODO figure out how much to buffer this channel
+	//A non-buffered channel will cause blocking when multiple queries are made at the same time
+	queue := make(chan query)
+	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false}
+	go c.throttledQuery()
+	return c
 }
 
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
@@ -76,6 +107,33 @@ func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
 
+// ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
+// If set to true, the query will fail and return the error instead of automatically queuing and
+// retrying the query when the rate limit expires
+func (c *TwitterApi) ReturnRateLimitError(b bool) {
+	c.returnRateLimitError = b
+}
+
+// Enable query throttling using the tokenbucket algorithm
+func (c *TwitterApi) EnableThrottling(rate time.Duration, bufferSize int64) {
+	c.bucket = tokenbucket.NewBucket(rate, bufferSize)
+}
+
+// Disable query throttling
+func (c *TwitterApi) DisableThrottling() {
+	c.bucket = nil
+}
+
+// SetDelay will set the delay between throttled queries
+// To turn of throttling, set it to 0 seconds
+func (c *TwitterApi) SetDelay(t time.Duration) {
+	c.bucket.SetRate(t)
+}
+
+func (c *TwitterApi) GetDelay() time.Duration {
+	return c.bucket.GetRate()
+}
+
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
 //Redirect the user to this URL.
 //This assumes that the consumer key has already been set (using SetConsumerKey).
@@ -88,7 +146,7 @@ func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
 }
 
 func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
-  return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
+	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
 }
 
 func cleanValues(v url.Values) url.Values {
@@ -121,9 +179,81 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
-		p, _ := ioutil.ReadAll(resp.Body)
-
-		return fmt.Errorf("Get %s returned status %d, %s", resp.Request.URL, resp.StatusCode, p)
+		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
+}
+
+func NewApiError(resp *http.Response) *ApiError {
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	return &ApiError{
+		StatusCode: resp.StatusCode,
+		Header:     resp.Header,
+		Body:       string(body),
+		URL:        resp.Request.URL,
+	}
+}
+
+//query executes a query to the specified url, sending the values specified by form, and decodes the response JSON to data
+//method can be either _GET or _POST
+func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, method int) error {
+	switch method {
+	case _GET:
+		return c.apiGet(urlStr, form, data)
+	case _POST:
+		return c.apiPost(urlStr, form, data)
+	default:
+		return fmt.Errorf("HTTP method not yet supported")
+	}
+}
+
+// throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
+// It is the only function that reads from the queryQueue for a particular *TwitterApi struct
+
+func (c *TwitterApi) throttledQuery() {
+	for q := range c.queryQueue {
+		url := q.url
+		form := q.form
+		data := q.data //This is where the actual response will be written
+		method := q.method
+
+		response_ch := q.response_ch
+
+		if c.bucket != nil {
+			<-c.bucket.SpendToken(1)
+		}
+
+		err := c.execQuery(url, form, data, method)
+
+		// Check if Twitter returned a rate-limiting error
+		if err != nil {
+			if apiErr, ok := err.(*ApiError); ok {
+				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError && !c.returnRateLimitError {
+					// If this is a rate-limiting error, re-add the job to the queue
+					// TODO it really should preserve order
+					go func() {
+						c.queryQueue <- q
+					}()
+
+					delay := nextWindow.Sub(time.Now())
+					<-time.After(delay)
+					// Drain the bucket (start over fresh)
+					c.bucket.Drain()
+				} else {
+					// A different kind of API error occurred
+					response_ch <- struct {
+						data interface{}
+						err  error
+					}{nil, err}
+				}
+			}
+		} else {
+
+			response_ch <- struct {
+				data interface{}
+				err  error
+			}{data, err}
+		}
+	}
 }

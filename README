@@ -1,6 +1,7 @@
 Anaconda
 ====================
 
+[![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
 
@@ -23,7 +24,7 @@ api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
 
 ### Queries
 
-Queries are conducted using the authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
+Queries are conducted using a pointer to an authenticated `TwitterApi` struct. In v1.1 of Twitter's API, all requests should be authenticated.
 
 ````go
 searchResult, _ := api.GetSearch("golang", nil)
@@ -50,6 +51,46 @@ Endpoints
 Anaconda implements most of the endpoints defined in the [Twitter API documentation](https://dev.twitter.com/docs/api/1.1). For clarity, in most cases, the function name is simply the name of the HTTP method and the endpoint (e.g., the endpoint `GET /friendships/incoming` is provided by the function `GetFriendshipsIncoming`).
 
 In a few cases, a shortened form has been chosen to make life easier (for example, retweeting is simply the function `Retweet`)
+
+
+
+Error Handling, Rate Limiting, and Throttling
+---------------------------------
+
+###Error Handling
+
+Twitter errors are returned as an `ApiError`, which satisfies the `error` interface and can be treated as a vanilla `error`. However, it also contains the additional information returned by the Twitter API that may be useful in deciding how to proceed after encountering an error.
+
+
+If you make queries too quickly, you may bump against Twitter's [rate limits](https://dev.twitter.com/docs/rate-limiting/1.1). If this happens, `anaconda` automatically retries the query when the rate limit resets, using the `X-Rate-Limit-Reset` header that Twitter provides to determine how long to wait.
+
+In other words, users of the `anaconda` library should not need to handle rate limiting errors themselves; this is handled seamlessly behind-the-scenes. If an error is returned by a function, another form of error must have occurred (which can be checked by using the fields provided by the `ApiError` struct).
+
+
+(If desired, this feature can be turned off by calling `ReturnRateLimitError(true)`.)
+
+
+###Throttling
+
+Anaconda now supports automatic client-side throttling of queries to avoid hitting the Twitter rate-limit.
+
+This is currently *off* by default; however, it may be turned on by default in future versions of the library, as the implementation is improved.
+
+
+To set a delay between queries, use the `SetDelay` method:
+
+````go
+    api.SetDelay(10 * time.Second)
+````
+
+Delays are set specific to each `TwitterApi` struct, so queries that use different users' access credentials are completely independent.
+
+
+To turn off automatic throttling, set the delay to `0`:
+
+````go
+    api.SetDelay(0 * time.Second)
+````
 
 
 
