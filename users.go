@@ -28,7 +28,7 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []User, er
 	return
 }
 
-func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []TwitterUser, err error) {
+func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, err error) {
   v = cleanValues(v)
   v.Set("q", searchTerm)
   // Set other values before calling this method:
