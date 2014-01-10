@@ -33,8 +33,9 @@ func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, er
 	v.Set("q", searchTerm)
 	// Set other values before calling this method:
 	// page, count, include_entities
-	err = a.apiGet("http://api.twitter.com/1.1/users/search.json", v, &u)
-	return
+  response_ch := make(chan response)
+  a.queryQueue <- query{"http://api.twitter.com/1.1/users/search.json", v, &u, _GET, response_ch}
+	return u, (<-response_ch).err
 }
 
 func (a TwitterApi) GetUsersShow(username string, v url.Values) (u User, err error) {
