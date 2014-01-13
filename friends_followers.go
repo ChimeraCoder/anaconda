@@ -56,7 +56,7 @@ func (a TwitterApi) GetFriendsIds(v url.Values) (c Cursor, err error) {
 
 func (a TwitterApi) GetFriendshipsLookup(v url.Values) (friendships []Friendship, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{"http://api.twitter.com/1.1/friendships/lookup.json", v, &friendships, _GET, response_ch}
+	a.queryQueue <- query{"https://api.twitter.com/1.1/friendships/lookup.json", v, &friendships, _GET, response_ch}
 	return friendships, (<-response_ch).err
 }
 
@@ -68,7 +68,7 @@ func (a TwitterApi) GetFriendshipsIncoming(v url.Values) (c Cursor, err error) {
 
 func (a TwitterApi) GetFriendshipsOutgoing(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{"http://api.twitter.com/1.1/friendships/outgoing.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{"https://api.twitter.com/1.1/friendships/outgoing.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
