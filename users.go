@@ -9,7 +9,7 @@ func (a TwitterApi) GetUsersLookup(usernames string, v url.Values) (u []User, er
 	v = cleanValues(v)
 	v.Set("screen_name", usernames)
 	response_ch := make(chan response)
-	a.queryQueue <- query{"https://api.twitter.com/1.1/users/lookup.json", v, &u, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/users/lookup.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }
 
@@ -24,7 +24,7 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []User, er
 	}
 	v = cleanValues(v)
 	v.Set("user_id", pids)
-	err = a.apiGet("https://api.twitter.com/1.1/users/lookup.json", v, &u)
+	err = a.apiGet("/users/lookup.json", v, &u)
 	return
 }
 
@@ -32,7 +32,7 @@ func (a TwitterApi) GetUsersShow(username string, v url.Values) (u User, err err
 	v = cleanValues(v)
 	v.Set("screen_name", username)
 	response_ch := make(chan response)
-	a.queryQueue <- query{"https://api.twitter.com/1.1/users/show.json", v, &u, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/users/show.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }
 
@@ -40,6 +40,6 @@ func (a TwitterApi) GetUsersShowById(id int64, v url.Values) (u User, err error)
 	v = cleanValues(v)
 	v.Set("user_id", strconv.FormatInt(id, 10))
 	response_ch := make(chan response)
-	a.queryQueue <- query{"https://api.twitter.com/1.1/users/show.json", v, &u, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/users/show.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }
