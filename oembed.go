@@ -22,7 +22,7 @@ type OEmbed struct {
 
 // No authorization on this endpoint. Its the only one.
 func (a TwitterApi) GetOEmbed(v url.Values) (o OEmbed, err error) {
-	resp, err := http.Get("https://api.twitter.com/1/statuses/oembed.json?" + v.Encode())
+	resp, err := http.Get(BaseUrlV1 + "/statuses/oembed.json?" + v.Encode())
 	if err != nil {
 		return
 	}
@@ -38,7 +38,7 @@ func (a TwitterApi) GetOEmbedId(id int64, v url.Values) (o OEmbed, err error) {
 		v = url.Values{}
 	}
 	v.Set("id", strconv.FormatInt(id, 10))
-	resp, err := http.Get("https://api.twitter.com/1/statuses/oembed.json?" + v.Encode())
+	resp, err := http.Get(BaseUrlV1 + "/statuses/oembed.json?" + v.Encode())
 	if err != nil {
 		return
 	}
