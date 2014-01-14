@@ -39,42 +39,42 @@ type FollowersPage struct {
 //It does not currently support the stringify_ids parameter
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friendships/no_retweets/ids.json", nil, &ids, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friendships/no_retweets/ids.json", nil, &ids, _GET, response_ch}
 	return ids, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
-	err = a.apiGet("https://api.twitter.com/1.1/followers/ids.json", v, &c)
+	err = a.apiGet("/followers/ids.json", v, &c)
 	return
 }
 
 func (a TwitterApi) GetFriendsIds(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friends/ids.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsLookup(v url.Values) (friendships []Friendship, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friendships/lookup.json", v, &friendships, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friendships/lookup.json", v, &friendships, _GET, response_ch}
 	return friendships, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsIncoming(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friendships/incoming.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friendships/incoming.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFriendshipsOutgoing(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friendships/outgoing.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friendships/outgoing.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFollowersList(v url.Values) (c UserCursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/followers/list.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/followers/list.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
@@ -113,6 +113,6 @@ func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFriendsIdsAll(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "https://api.twitter.com/1.1/friends/ids.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
