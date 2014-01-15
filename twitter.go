@@ -240,22 +240,22 @@ func (c *TwitterApi) throttledQuery() {
 
 					delay := nextWindow.Sub(time.Now())
 					<-time.After(delay)
+
 					// Drain the bucket (start over fresh)
-					c.bucket.Drain()
-				} else {
-					// A different kind of API error occurred
-					response_ch <- struct {
-						data interface{}
-						err  error
-					}{nil, err}
+					if c.bucket != nil {
+						c.bucket.Drain()
+					}
+
+					continue
 				}
 			}
-		} else {
-
-			response_ch <- struct {
-				data interface{}
-				err  error
-			}{data, err}
 		}
+
+		response_ch <- response{data, err}
 	}
+}
+
+// Close query queue
+func (c *TwitterApi) Close() {
+	close(c.queryQueue)
 }
