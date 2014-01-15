@@ -24,7 +24,7 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []User, er
 	}
 	v = cleanValues(v)
 	v.Set("user_id", pids)
-	err = a.apiGet("/users/lookup.json", v, &u)
+	err = a.apiGet(BaseUrl + "/users/lookup.json", v, &u)
 	return
 }
 
