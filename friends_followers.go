@@ -44,7 +44,7 @@ func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 }
 
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
-	err = a.apiGet(BaseUrl + "/followers/ids.json", v, &c)
+	err = a.apiGet(BaseUrl+"/followers/ids.json", v, &c)
 	return
 }
 
