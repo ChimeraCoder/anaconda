@@ -53,3 +53,15 @@ func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/statuses/retweet/%d.json", id), v, &rt, _POST, response_ch}
 	return rt, (<-response_ch).err
 }
+
+//Favorite will favorite the status (tweet) with the specified ID.
+//trimUser functions as in DeleteTweet
+func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
+	v := url.Values{}
+	if trimUser {
+		v.Set("trim_user", "t")
+	}
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/favorites/create/%d.json", id), v, &rt, _POST, response_ch}
+	return rt, (<-response_ch).err
+}
