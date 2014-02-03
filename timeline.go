@@ -4,9 +4,14 @@ import (
 	"net/url"
 )
 
-func (a TwitterApi) GetHomeTimeline() (timeline []Tweet, err error) {
-	v := url.Values{}
-	v.Set("include_entities", "true")
+func (a TwitterApi) GetHomeTimeline(v url.Values) (timeline []Tweet, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+
+	if v.Get("include_entities") == "" {
+		v.Set("include_entities", "true")
+	}
 
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/statuses/home_timeline.json", v, &timeline, _GET, response_ch}
