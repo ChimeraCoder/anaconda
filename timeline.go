@@ -4,9 +4,15 @@ import (
 	"net/url"
 )
 
-func (a TwitterApi) GetHomeTimeline() (timeline []Tweet, err error) {
-	v := url.Values{}
-	v.Set("include_entities", "true")
+// GetHomeTimeline returns the most recent tweets and retweets posted by the user
+// and the users that they follow.
+// https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
+func (a TwitterApi) GetHomeTimeline(v url.Values) (timeline []Tweet, err error) {
+
+	// include_entities should default to "true"
+	if val := v.Get("include_entities"); val == "" {
+		v.Set("include_entities", "true")
+	}
 
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/statuses/home_timeline.json", v, &timeline, _GET, response_ch}
