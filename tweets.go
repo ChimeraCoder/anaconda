@@ -58,7 +58,8 @@ func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 // https://dev.twitter.com/docs/api/1.1/post/favorites/create
 func (a TwitterApi) Favorite(id int64) (rt Tweet, err error) {
 	v := url.Values{}
+	v.Set("id", fmt.Sprint(id))
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/favorites/create/%d.json", id), v, &rt, _POST, response_ch}
+	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/favorites/create.json"), v, &rt, _POST, response_ch}
 	return rt, (<-response_ch).err
 }
