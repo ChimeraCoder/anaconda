@@ -9,9 +9,9 @@ import (
 // https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
 // By default, include_entities is set to "true"
 func (a TwitterApi) GetHomeTimeline(v url.Values) (timeline []Tweet, err error) {
-    if v == nil {
-        v = url.Values{}
-    }
+	if v == nil {
+		v = url.Values{}
+	}
 
 	if val := v.Get("include_entities"); val == "" {
 		v.Set("include_entities", "true")
