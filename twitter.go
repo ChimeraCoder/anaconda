@@ -68,6 +68,7 @@ type TwitterApi struct {
 	queryQueue           chan query
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
+	HttpClient           *http.Client
 }
 
 type query struct {
@@ -92,7 +93,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false}
+	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false, http.DefaultClient}
 	go c.throttledQuery()
 	return c
 }
@@ -160,7 +161,7 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
-	resp, err := oauthClient.Get(http.DefaultClient, c.Credentials, urlStr, form)
+	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
 	}
@@ -170,7 +171,7 @@ func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) err
 
 // apiPost issues a POST request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) error {
-	resp, err := oauthClient.Post(http.DefaultClient, c.Credentials, urlStr, form)
+	resp, err := oauthClient.Post(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
 	}
