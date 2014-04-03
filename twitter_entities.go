@@ -1,5 +1,14 @@
 package anaconda
 
+type UrlEntity struct {
+	Urls []struct {
+		Indices      []int
+		Url          string
+		Display_url  string
+		Expanded_url string
+	}
+}
+
 type Entities struct {
 	Hashtags []struct {
 		Indices []int
@@ -11,6 +20,7 @@ type Entities struct {
 		Display_url  string
 		Expanded_url string
 	}
+	Url           UrlEntity
 	User_mentions []struct {
 		Name        string
 		Indices     []int
