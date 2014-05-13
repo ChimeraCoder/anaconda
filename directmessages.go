@@ -26,7 +26,7 @@ func (a TwitterApi) GetDirectMessagesShow(v url.Values) (messages []DirectMessag
 // https://dev.twitter.com/docs/api/1.1/post/direct_messages/new
 func (a TwitterApi) PostDirectMessagesNewToScreenName(text, screenName string) (message DirectMessage, err error) {
 	v := url.Values{}
-	v.Set("user_id", screenName)
+	v.Set("screen_name", screenName)
 	v.Set("text", text)
 	return a.postDirectMessagesImpl(v)
 }
