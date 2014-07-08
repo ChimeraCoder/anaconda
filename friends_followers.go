@@ -78,6 +78,12 @@ func (a TwitterApi) GetFollowersList(v url.Values) (c UserCursor, err error) {
 	return c, (<-response_ch).err
 }
 
+func (a TwitterApi) GetFriendsList(v url.Values) (c UserCursor, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friends/list.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
+
 // Like GetFollowersList, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage) {
