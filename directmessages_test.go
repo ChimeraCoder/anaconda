@@ -23,12 +23,24 @@ func init() {
 	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 }
 
-// Test that the client can be used to throttle to an arbitrary duration
-func Test_TwitterApi_SendDirectMessage(t *testing.T) {
-	userId := "paolo_ibarra"
-	text := "This is a test message"
+func Test_TwitterApi_SendDirectMessageScreenName(t *testing.T) {
+	screenName := "paolo_ibarra"
+	text := "This is a test message via screen name"
 
-	directMessage, err := api.SendDirectMessage("", userId, text)
+	directMessage, err := api.SendDirectMessageScreenName(screenName, text)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(directMessage)
+}
+
+func Test_TwitterApi_SendDirectMessageUserId(t *testing.T) {
+	userId := int64(186643967)
+	text := "This is a test message via user id"
+
+	directMessage, err := api.SendDirectMessageUserId(userId, text)
 
 	if err != nil {
 		panic(err)
