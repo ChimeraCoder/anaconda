@@ -3,7 +3,6 @@ package anaconda_test
 import (
 	"fmt"
 	"github.com/jpibarra1130/anaconda"
-	"net/url"
 	"os"
 	"testing"
 )
@@ -28,11 +27,8 @@ func init() {
 func Test_TwitterApi_SendDirectMessage(t *testing.T) {
 	userId := "paolo_ibarra"
 	text := "This is a test message"
-	v := url.Values{}
-	v.Set("screen_name", userId)
-	v.Set("text", text)
 
-	directMessage, err := api.SendDirectMessage(v)
+	directMessage, err := api.SendDirectMessage("", userId, text)
 
 	if err != nil {
 		panic(err)
