@@ -2,7 +2,7 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/jpibarra1130/anaconda"
+	"github.com/ChimeraCoder/anaconda"
 	"os"
 	"testing"
 )
