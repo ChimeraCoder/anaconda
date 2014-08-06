@@ -4,13 +4,23 @@ import (
 	"net/url"
 )
 
-type searchResponse struct {
-	Statuses []Tweet
+type SearchMetadata struct {
+	CompletedIn   float32 `json:"completed_in"`
+	MaxId         int64   `json:"max_id"`
+	MaxIdString   string  `json:"max_id_str"`
+	Query         string  `json:"query"`
+	RefreshUrl    string  `json:"refresh_url"`
+	Count         int     `json:"count"`
+	SinceId       int64   `json:"since_id"`
+	SinceIdString string  `json:"since_id_str"`
 }
 
-func (a TwitterApi) GetSearch(queryString string, v url.Values) (timeline []Tweet, err error) {
-	var sr searchResponse
+type SearchResponse struct {
+	Statuses []Tweet        `json:"statuses"`
+	Metadata SearchMetadata `json:"search_metadata"`
+}
 
+func (a TwitterApi) GetSearch(queryString string, v url.Values) (sr SearchResponse, err error) {
 	v = cleanValues(v)
 	v.Set("q", queryString)
 
@@ -21,6 +31,5 @@ func (a TwitterApi) GetSearch(queryString string, v url.Values) (timeline []Twee
 	// Otherwise this will happen before the responses have been written
 	resp := <-response_ch
 	err = resp.err
-	timeline = sr.Statuses
-	return timeline, err
+	return sr, err
 }
