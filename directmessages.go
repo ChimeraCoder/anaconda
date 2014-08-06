@@ -22,8 +22,14 @@ func (a TwitterApi) GetDirectMessagesShow(v url.Values) (messages []DirectMessag
 	return messages, (<-response_ch).err
 }
 
-func (a TwitterApi) SendDirectMessage(v url.Values) (message DirectMessage, err error) {
+func (a TwitterApi) SendDirectMessage(userId string, screenName string, text string) (message DirectMessage, err error) {
 	response_ch := make(chan response)
+
+	v := url.Values{}
+	v.Set("user_id", userId)
+	v.Set("screen_name", screenName)
+	v.Set("text", text)
+
 	a.queryQueue <- query{BaseUrl + "/direct_messages/new.json", v, &message, _POST, response_ch}
 	return message, (<-response_ch).err
 }
