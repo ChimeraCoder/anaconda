@@ -3,6 +3,7 @@ package anaconda_test
 import (
 	"fmt"
 	"github.com/ChimeraCoder/anaconda"
+	"net/url"
 	"os"
 	"reflect"
 	"testing"
@@ -85,7 +86,23 @@ func Test_GetUser(t *testing.T) {
 	if reflect.DeepEqual(users[0], anaconda.User{}) {
 		t.Errorf("Received %#v", users[0])
 	}
+}
 
+func Test_GetFavorites(t *testing.T) {
+	v := url.Values{}
+	v.Set("screen_name", "chimeracoder")
+	favorites, err := api.GetFavorites(v)
+	if err != nil {
+		t.Errorf("GetFavorites returned error: %s", err.Error())
+	}
+
+	if len(favorites) == 0 {
+		t.Errorf("GetFavorites returned no favorites")
+	}
+
+	if reflect.DeepEqual(favorites[0], anaconda.Tweet{}) {
+		t.Errorf("GetFavorites returned %d favorites and the first one was empty", len(favorites))
+	}
 }
 
 // Test that a valid tweet can be fetched properly
