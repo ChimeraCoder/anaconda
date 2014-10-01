@@ -1,10 +1,11 @@
 package anaconda_test
 
 import (
-	"github.com/ChimeraCoder/anaconda"
 	"net/url"
 	"reflect"
 	"testing"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 func TestOEmbed(t *testing.T) {

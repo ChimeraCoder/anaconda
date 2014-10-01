@@ -42,12 +42,13 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ChimeraCoder/tokenbucket"
-	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/ChimeraCoder/tokenbucket"
+	"github.com/garyburd/go-oauth/oauth"
 )
 
 const (

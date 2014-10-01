@@ -2,8 +2,9 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
 	"time"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 // Initialize an client library for a given user.

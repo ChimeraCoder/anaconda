@@ -2,12 +2,13 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
 	"net/url"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -262,4 +263,12 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
+}
+
+func Test_DMScreenName(t *testing.T) {
+	message, err := api.PostDMToScreenName("Test the anaconda lib", "exchgr")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }
