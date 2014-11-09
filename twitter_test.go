@@ -266,7 +266,11 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 }
 
 func Test_DMScreenName(t *testing.T) {
-	message, err := api.PostDMToScreenName("Test the anaconda lib", "exchgr")
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
 	if err != nil {
 		t.Error(err)
 		return
