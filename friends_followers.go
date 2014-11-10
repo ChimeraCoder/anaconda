@@ -2,6 +2,7 @@ package anaconda
 
 import (
 	"net/url"
+	"strconv"
 )
 
 type Cursor struct {
@@ -121,4 +122,24 @@ func (a TwitterApi) GetFriendsIdsAll(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
+}
+
+// PostFriendshipsCreateToUserId is used to follow a user by ID
+func (a TwitterApi) PostFriendshipsCreateToUserId(userId int64) (user User, err error) {
+	v := url.Values{}
+	v.Set("user_id", strconv.FormatInt(userId, 10))
+	return a.postFriendshipsCreateImpl(v)
+}
+
+// PostFriendshipsCreateToScreenName is used to follow a user by username
+func (a TwitterApi) PostFriendshipsCreateToScreenName(screenName string) (user User, err error) {
+	v := url.Values{}
+	v.Set("screen_name", screenName)
+	return a.postFriendshipsCreateImpl(v)
+}
+
+func (a TwitterApi) postFriendshipsCreateImpl(v url.Values) (user User, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friendships/create.json", v, &user, _POST, response_ch}
+	return user, (<-response_ch).err
 }
