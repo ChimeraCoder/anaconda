@@ -140,20 +140,49 @@ func (a TwitterApi) GetFriendsUser(id int64, v url.Values) (c Cursor, err error)
 	return c, (<-response_ch).err
 }
 
-func (a TwitterApi) FollowUser(id int64, v url.Values) (u User, err error) {
+// FollowUserId follows the user with the specified userId.
+// This implements the /friendships/create endpoint, though the function name
+// uses the terminology 'follow' as this is most consistent with colloquial Twitter terminology.
+func (a TwitterApi) FollowUserId(userId int64, v url.Values) (user User, err error) {
 	v = cleanValues(v)
-	v.Set("user_id", strconv.FormatInt(id, 10))
-	v.Set("follow", "true")
+	v.Set("user_id", strconv.FormatInt(userId, 10))
+	return a.postFriendshipsCreateImpl(v)
+}
+
+// FollowUserId follows the user with the specified screenname (username).
+// This implements the /friendships/create endpoint, though the function name
+// uses the terminology 'follow' as this is most consistent with colloquial Twitter terminology.
+func (a TwitterApi) FollowUser(screenName string) (user User, err error) {
+	v := url.Values{}
+	v.Set("screen_name", screenName)
+	return a.postFriendshipsCreateImpl(v)
+}
+
+func (a TwitterApi) postFriendshipsCreateImpl(v url.Values) (user User, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friendships/create.json", v, &user, _POST, response_ch}
+	return user, (<-response_ch).err
+}
+
+// UnfollowUserId unfollows the user with the specified userId.
+// This implements the /friendships/destroy endpoint, though the function name
+// uses the terminology 'unfollow' as this is most consistent with colloquial Twitter terminology.
+func (a TwitterApi) UnfollowUserId(userId int64) (u User, err error) {
+	v := url.Values{}
+	v.Set("user_id", strconv.FormatInt(userId, 10))
 	// Set other values before calling this method:
 	// page, count, include_entities
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/friendships/create.json", v, &u, _POST, response_ch}
+	a.queryQueue <- query{BaseUrl + "/friendships/destroy.json", v, &u, _POST, response_ch}
 	return u, (<-response_ch).err
 }
 
-func (a TwitterApi) UnFollowUser(id int64, v url.Values) (u User, err error) {
-	v = cleanValues(v)
-	v.Set("user_id", strconv.FormatInt(id, 10))
+// UnfollowUser unfollows the user with the specified screenname (username)
+// This implements the /friendships/destroy endpoint, though the function name
+// uses the terminology 'unfollow' as this is most consistent with colloquial Twitter terminology.
+func (a TwitterApi) UnfollowUser(screenname string) (u User, err error) {
+	v := url.Values{}
+	v.Set("screen_name", screenname)
 	// Set other values before calling this method:
 	// page, count, include_entities
 	response_ch := make(chan response)
