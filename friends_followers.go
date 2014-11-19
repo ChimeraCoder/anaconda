@@ -2,6 +2,7 @@ package anaconda
 
 import (
 	"net/url"
+	"strconv"
 )
 
 type Cursor struct {
@@ -115,10 +116,47 @@ func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage
 	return result
 }
 
+func (a TwitterApi) GetFollowersUser(id int64, v url.Values) (c Cursor, err error) {
+	v = cleanValues(v)
+	v.Set("user_id", strconv.FormatInt(id, 10))
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/followers/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
+
 // Like GetFriendsIds, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFriendsIdsAll(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
+}
+
+func (a TwitterApi) GetFriendsUser(id int64, v url.Values) (c Cursor, err error) {
+	v = cleanValues(v)
+	v.Set("user_id", strconv.FormatInt(id, 10))
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
+
+func (a TwitterApi) FollowUser(id int64, v url.Values) (u User, err error) {
+	v = cleanValues(v)
+	v.Set("user_id", strconv.FormatInt(id, 10))
+	v.Set("follow", "true")
+	// Set other values before calling this method:
+	// page, count, include_entities
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friendships/create.json", v, &u, _POST, response_ch}
+	return u, (<-response_ch).err
+}
+
+func (a TwitterApi) UnFollowUser(id int64, v url.Values) (u User, err error) {
+	v = cleanValues(v)
+	v.Set("user_id", strconv.FormatInt(id, 10))
+	// Set other values before calling this method:
+	// page, count, include_entities
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/friendships/destroy.json", v, &u, _POST, response_ch}
+	return u, (<-response_ch).err
 }
