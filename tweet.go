@@ -30,6 +30,12 @@ type Tweet struct {
 	User                 User        `json:"user"`
 }
 
+type ById []Tweet
+// Implement sort interface
+func (a ById) Len() int           { return len(a) }
+func (a ById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ById) Less(i, j int) bool { return a[i].Id < a[j].Id }
+
 // CreatedAtTime is a convenience wrapper that returns the Created_at time, parsed as a time.Time struct
 func (t Tweet) CreatedAtTime() (time.Time, error) {
 	return time.Parse(time.RubyDate, t.CreatedAt)
