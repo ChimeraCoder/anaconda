@@ -210,6 +210,7 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 	default:
 		return fmt.Errorf("HTTP method not yet supported")
 	}
+	return nil
 }
 
 // throttledQuery executes queries and automatically throttles them according to SECONDS_PER_QUERY
