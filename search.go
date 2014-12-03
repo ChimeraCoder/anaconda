@@ -5,7 +5,7 @@ import (
 )
 
 type searchResponse struct {
-	Statuses []Tweet
+	Statuses []Tweet `json:"statuses"`
 }
 
 func (a TwitterApi) GetSearch(queryString string, v url.Values) (timeline []Tweet, err error) {
