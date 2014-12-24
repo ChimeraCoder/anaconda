@@ -18,7 +18,7 @@ type List struct {
 	Id              int64  `json:"id"`
 	SubscriberCount int64  `json:"subscriber_count"`
 	MemberCount     int64  `json:"member_count"`
-	mode            string `json:"mode"`
+	Mode            string `json:"mode"`
 	FullName        string `json:"full_name"`
 	Description     string `json:"description"`
 	User            User   `json:"user"`

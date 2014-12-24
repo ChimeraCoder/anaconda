@@ -5,8 +5,11 @@ import (
 	"strconv"
 )
 
-func (a TwitterApi) CreateList(name, description string) (list List, err error) {
-	v := url.Values{}
+// CreateList implements /lists/create.json
+func (a TwitterApi) CreateList(name, description string, v url.Values) (list List, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
 	v.Set("name", name)
 	v.Set("description", description)
 
@@ -15,8 +18,11 @@ func (a TwitterApi) CreateList(name, description string) (list List, err error) 
 	return list, (<-response_ch).err
 }
 
-func (a TwitterApi) AddUserToList(screenName string, listID int64) (users []User, err error) {
-	v := url.Values{}
+// AddUserToList implements /lists/members/create.json
+func (a TwitterApi) AddUserToList(screenName string, listID int64, v url.Values) (users []User, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
 	v.Set("list_id", strconv.FormatInt(listID, 10))
 	v.Set("screen_name", screenName)
 
@@ -27,8 +33,12 @@ func (a TwitterApi) AddUserToList(screenName string, listID int64) (users []User
 	return addUserToListResponse.Users, (<-response_ch).err
 }
 
-func (a TwitterApi) GetListsOwnedBy(userID int64, count int) (lists []List, err error) {
-	v := url.Values{}
+// GetListsOwnedBy implements /lists/ownerships.json
+// screen_name, count, and cursor are all optional values
+func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
 	v.Set("user_id", strconv.FormatInt(userID, 10))
 	v.Set("count", strconv.FormatInt(userID, 10))
 
@@ -39,8 +49,10 @@ func (a TwitterApi) GetListsOwnedBy(userID int64, count int) (lists []List, err 
 	return listResponse.Lists, (<-response_ch).err
 }
 
-func (a TwitterApi) GetListTweets(listID int64, includeRTs bool) (tweets []Tweet, err error) {
-	v := url.Values{}
+func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (tweets []Tweet, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
 	v.Set("list_id", strconv.FormatInt(listID, 10))
 	v.Set("include_rts", strconv.FormatBool(includeRTs))
 
