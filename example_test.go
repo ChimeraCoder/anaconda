@@ -25,7 +25,7 @@ func ExampleTwitterApi_GetSearch() {
 	if err != nil {
 		panic(err)
 	}
-	for _, tweet := range search_result {
+	for _, tweet := range search_result.Statuses {
 		fmt.Print(tweet.Text)
 	}
 }

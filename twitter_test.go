@@ -53,19 +53,19 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 	}
 
 	// Unless something is seriously wrong, there should be at least two tweets
-	if len(search_result) < 2 {
-		t.Errorf("Expected 2 or more tweets, and found %d", len(search_result))
+	if len(search_result.Statuses) < 2 {
+		t.Errorf("Expected 2 or more tweets, and found %d", len(search_result.Statuses))
 	}
 
 	// Check that at least one tweet is non-empty
-	for _, tweet := range search_result {
+	for _, tweet := range search_result.Statuses {
 		if tweet.Text != "" {
 			return
 		}
 		fmt.Print(tweet.Text)
 	}
 
-	t.Errorf("All %d tweets had empty text", len(search_result))
+	t.Errorf("All %d tweets had empty text", len(search_result.Statuses))
 }
 
 // Test that a valid user can be fetched
