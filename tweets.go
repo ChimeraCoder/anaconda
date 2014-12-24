@@ -18,7 +18,6 @@ func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error) {
 func (a TwitterApi) GetTweetsLookupByIds(ids []int64, v url.Values) (tweet []Tweet, err error) {
 	var pids string
 	for w, i := range ids {
-		//pids += strconv.Itoa(i)
 		pids += strconv.FormatInt(i, 10)
 		if w != len(ids)-1 {
 			pids += ","

@@ -258,7 +258,7 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 	after := time.Now()
 
 	if difference := after.Sub(now); difference < MIN_DELAY {
-		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
+		t.Errorf("Expected delay of at least %s. Actual delay: %s", MIN_DELAY.String(), difference.String())
 	}
 
 	// Reset the delay to its previous value
