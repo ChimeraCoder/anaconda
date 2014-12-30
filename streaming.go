@@ -98,10 +98,10 @@ type Event struct {
 	CreatedAt string `json:"created_at"`
 }
 
-// TODO: List struct is not defined
-// type EventList struct {
-// 	TargetObject *List `json:"target_object"`
-// }
+type EventList struct {
+	Event
+	TargetObject *List `json:"target_object"`
+}
 
 type EventTweet struct {
 	Event
@@ -162,6 +162,8 @@ func (s Stream) listen() {
 			} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
 				s.C <- *o.DirectMessage
 			} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
+				s.C <- *o
+			} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
 				s.C <- *o
 			} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
 				s.C <- *o
