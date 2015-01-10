@@ -124,7 +124,9 @@ type Stream struct {
 }
 
 func (s Stream) Close() error {
-	close(s.C)
+	if _, ok := <-s.C; ok {
+		close(s.C)
+	}
 	return s.response.Body.Close()
 }
 
