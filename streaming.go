@@ -187,6 +187,9 @@ func (a TwitterApi) newStream(urlStr string, v url.Values, method int) (stream S
 	if err != nil {
 		return
 	}
+	if resp.StatusCode/100 != 2 {
+		return stream, fmt.Errorf("Error starting stream: ", resp.Status)
+	}
 
 	stream = Stream{resp, make(chan interface{})}
 	go stream.listen()
