@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/dustin/go-jsonpointer"
 )
@@ -118,22 +119,37 @@ type TooManyFollow struct {
 
 // TODO: Site Stream messages. I cant test.
 
+// Stream allows you to stream using one of the
+// PublicStream* or UserStream api methods
+//
+// A go loop is started an gives you an interface{}
+// Which you can cast into a tweet like this :
+//    t, ok := o.(twitter.Tweet) // try casting into a tweet
+//    if !ok {
+//      log.Debug("Recieved non tweet message")
+//    }
+//
+// If we can't stream the chan will be closed.
+// Otherwise the loop will connect and send streams in the chan.
+// It will also try to reconnect itself after 2s if the connection is lost
+// If twitter response is one of 420, 429 or 503 (meaning "wait a sec")
+// the loop retries to open the socket with a simple autogrowing backoff.
+//
+// May be we could pass it a Logger interface to allow the
+// stream to log in the right place ?
 type Stream struct {
-	response *http.Response
-	C        chan interface{}
+	api TwitterApi
+	C   chan interface{}
 }
 
-func (s Stream) Close() error {
-	if _, ok := <-s.C; ok {
+func (s Stream) Close() {
+	if s.C != nil {
 		close(s.C)
 	}
-	return s.response.Body.Close()
 }
 
-func (s Stream) listen() {
-	defer s.Close()
-
-	scanner := bufio.NewScanner(s.response.Body)
+func (s Stream) listen(response http.Response) {
+	scanner := bufio.NewScanner(response.Body)
 	for {
 		if ok := scanner.Scan(); !ok {
 			break
@@ -172,25 +188,47 @@ func (s Stream) listen() {
 	}
 }
 
-func (a TwitterApi) newStream(urlStr string, v url.Values, method int) (stream Stream, err error) {
-	var resp *http.Response
+func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
-		resp, err = oauthClient.Get(a.HttpClient, a.Credentials, urlStr, v)
+		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	case _POST:
-		resp, err = oauthClient.Post(a.HttpClient, a.Credentials, urlStr, v)
+		return oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	default:
-		return stream, fmt.Errorf("HTTP method not yet supported")
 	}
-	if err != nil {
-		return
-	}
-	if resp.StatusCode/100 != 2 {
-		return stream, fmt.Errorf("Error starting stream: ", resp.Status)
-	}
+	return nil, fmt.Errorf("HTTP method not yet supported")
+}
 
-	stream = Stream{resp, make(chan interface{})}
-	go stream.listen()
+func (s Stream) loop(urlStr string, v url.Values, method int) {
+	defer s.Close()
+
+	backoff := time.Duration(2 * time.Second)
+	for resp, err := s.requestStream(urlStr, v, method); err == nil; {
+		switch resp.StatusCode {
+		case 200, 304:
+			s.listen(*resp)
+			backoff = time.Duration(2 * time.Second)
+			break
+		case 420, 429, 503:
+			fmt.Println("Twitter streaming: backing off:", resp.Status)
+			backoff += time.Duration(2 * time.Second)
+			break
+		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
+			fmt.Println("Twitter streaming: leaving after an irremediable error:", resp.Status)
+			// Close chan in case of error
+			return
+		}
+		time.Sleep(backoff)
+	}
+}
+
+func (a TwitterApi) newStream(urlStr string, v url.Values, method int) (stream Stream, err error) {
+
+	stream = Stream{
+		api: a,
+		C:   make(chan interface{}),
+	}
+	go stream.loop(urlStr, v, method)
 	return
 }
 
