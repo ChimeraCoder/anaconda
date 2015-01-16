@@ -131,47 +131,45 @@ func (s Stream) Close() error {
 }
 
 func (s Stream) listen() {
-	go func() {
-		defer s.Close()
+	defer s.Close()
 
-		scanner := bufio.NewScanner(s.response.Body)
-		for {
-			if ok := scanner.Scan(); !ok {
-				break
-			}
-			// TODO: DRY
-			j := scanner.Bytes()
-			if scanner.Text() == "" {
-				continue
-			} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
-				s.C <- *o
-			} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
-				s.C <- *o.Delete.Status
-			} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
-				s.C <- *o.ScrubGeo
-			} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
-				s.C <- *o.Limit
-			} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
-				s.C <- *o.StatusWithheld
-			} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
-				s.C <- *o.UserWithheld
-			} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
-				s.C <- *o.Disconnect
-			} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
-				s.C <- *o.Warning
-			} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
-				s.C <- *o.Friends
-			} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
-				s.C <- *o.DirectMessage
-			} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
-				s.C <- *o
-			} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
-				s.C <- *o
-			} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
-				s.C <- *o
-			}
+	scanner := bufio.NewScanner(s.response.Body)
+	for {
+		if ok := scanner.Scan(); !ok {
+			break
 		}
-	}()
+		// TODO: DRY
+		j := scanner.Bytes()
+		if scanner.Text() == "" {
+			continue
+		} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
+			s.C <- *o
+		} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
+			s.C <- *o.Delete.Status
+		} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
+			s.C <- *o.ScrubGeo
+		} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
+			s.C <- *o.Limit
+		} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
+			s.C <- *o.StatusWithheld
+		} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
+			s.C <- *o.UserWithheld
+		} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
+			s.C <- *o.Disconnect
+		} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
+			s.C <- *o.Warning
+		} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
+			s.C <- *o.Friends
+		} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
+			s.C <- *o.DirectMessage
+		} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
+			s.C <- *o
+		} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
+			s.C <- *o
+		} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
+			s.C <- *o
+		}
+	}
 }
 
 func (a TwitterApi) newStream(urlStr string, v url.Values, method int) (stream Stream, err error) {
