@@ -135,27 +135,28 @@ type TooManyFollow struct {
 // If twitter response is one of 420, 429 or 503 (meaning "wait a sec")
 // the loop retries to open the socket with a simple autogrowing backoff.
 //
+// When finished you can call stream.Close() to terminate remote connection.
+//
 // May be we could pass it a Logger interface to allow the
 // stream to log in the right place ?
 type Stream struct {
-	api TwitterApi
-	C   chan interface{}
+	api  TwitterApi
+	C    chan interface{}
+	open bool
 }
 
 func (s Stream) Close() {
-	select {
-	case _, open := <-s.C:
-		if true == open {
-			close(s.C)
-		}
-	default:
+	if true == s.open {
+		s.open = false
 		close(s.C)
 	}
 }
 
 func (s Stream) listen(response http.Response) {
+	defer response.Body.Close()
+
 	scanner := bufio.NewScanner(response.Body)
-	for {
+	for true == s.open {
 		if ok := scanner.Scan(); !ok {
 			break
 		}
@@ -208,7 +209,7 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 	defer s.Close()
 
 	backoff := time.Duration(2 * time.Second)
-	for resp, err := s.requestStream(urlStr, v, method); err == nil; {
+	for resp, err := s.requestStream(urlStr, v, method); err == nil && true == s.open; {
 		switch resp.StatusCode {
 		case 200, 304:
 			s.listen(*resp)
@@ -227,36 +228,41 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 	}
 }
 
-func (a TwitterApi) newStream(urlStr string, v url.Values, method int) (stream Stream, err error) {
-
-	stream = Stream{
-		api: a,
-		C:   make(chan interface{}),
-	}
-	go stream.loop(urlStr, v, method)
-	return
+func (s Stream) Start(urlStr string, v url.Values, method int) {
+	s.open = true
+	go s.loop(urlStr, v, method)
 }
 
-func (a TwitterApi) UserStream(v url.Values) (stream Stream, err error) {
+func (a TwitterApi) newStream(urlStr string, v url.Values, method int) Stream {
+	stream := Stream{
+		api:  a,
+		open: true,
+		C:    make(chan interface{}),
+	}
+	stream.Start(urlStr, v, method)
+	return stream
+}
+
+func (a TwitterApi) UserStream(v url.Values) (stream Stream) {
 	return a.newStream(BaseUrlUserStream+"/user.json", v, _GET)
 }
 
-func (a TwitterApi) PublicStreamSample(v url.Values) (stream Stream, err error) {
+func (a TwitterApi) PublicStreamSample(v url.Values) (stream Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/sample.json", v, _GET)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream Stream, err error) {
+func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/firehose.json", v, _GET)
 }
 
 // XXX: PublicStream(Track|Follow|Locations) func is needed?
-func (a TwitterApi) PublicStreamFilter(v url.Values) (stream Stream, err error) {
+func (a TwitterApi) PublicStreamFilter(v url.Values) (stream Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/filter.json", v, _POST)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) SiteStream(v url.Values) (stream Stream, err error) {
+func (a TwitterApi) SiteStream(v url.Values) (stream Stream) {
 	return a.newStream(BaseUrlSiteStream+"/site.json", v, _GET)
 }
 
