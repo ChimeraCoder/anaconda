@@ -143,7 +143,12 @@ type Stream struct {
 }
 
 func (s Stream) Close() {
-	if s.C != nil {
+	select {
+	case _, open := <-s.C:
+		if true == open {
+			close(s.C)
+		}
+	default:
 		close(s.C)
 	}
 }
