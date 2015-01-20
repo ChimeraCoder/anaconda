@@ -35,19 +35,19 @@ func (a TwitterApi) Block(v url.Values) (user User, err error) {
 	return user, (<-response_ch).err
 }
 
-func (a TwitterApi) UnBlockUser(screenName string, v url.Values) (user User, err error) {
+func (a TwitterApi) UnblockUser(screenName string, v url.Values) (user User, err error) {
 	v = cleanValues(v)
 	v.Set("screen_name", screenName)
-	return a.UnBlock(v)
+	return a.Unblock(v)
 }
 
-func (a TwitterApi) UnBlockUserId(id int64, v url.Values) (user User, err error) {
+func (a TwitterApi) UnblockUserId(id int64, v url.Values) (user User, err error) {
 	v = cleanValues(v)
 	v.Set("user_id", strconv.FormatInt(id, 10))
-	return a.UnBlock(v)
+	return a.Unblock(v)
 }
 
-func (a TwitterApi) UnBlock(v url.Values) (user User, err error) {
+func (a TwitterApi) Unblock(v url.Values) (user User, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/blocks/destroy.json", v, &user, _POST, response_ch}
 	return user, (<-response_ch).err
