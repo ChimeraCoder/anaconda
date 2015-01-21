@@ -147,6 +147,7 @@ type Stream struct {
 
 func (s *Stream) Close() {
 	if true == s.open {
+		s.api.Log.Notice("Closing stream chan")
 		s.open = false
 		close(s.C)
 	}
@@ -155,6 +156,7 @@ func (s *Stream) Close() {
 func (s Stream) listen(response http.Response) {
 	defer response.Body.Close()
 
+	s.api.Log.Notice("Listenning to twitter socket")
 	scanner := bufio.NewScanner(response.Body)
 	for true == s.open {
 		if ok := scanner.Scan(); !ok {
@@ -163,35 +165,51 @@ func (s Stream) listen(response http.Response) {
 		// TODO: DRY
 		j := scanner.Bytes()
 		if scanner.Text() == "" {
+			s.api.Log.Debug("Empty bytes... Moving along")
 			continue
 		} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
+			s.api.Log.Debug("Got a Tweet")
 			s.C <- *o
 		} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
+			s.api.Log.Debug("Got a statusDeletionNotice")
 			s.C <- *o.Delete.Status
 		} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
+			s.api.Log.Debug("Got a locationDeletionNotice")
 			s.C <- *o.ScrubGeo
 		} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
+			s.api.Log.Debug("Got a limitNotice")
 			s.C <- *o.Limit
 		} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
+			s.api.Log.Debug("Got a statusWithheldNotice")
 			s.C <- *o.StatusWithheld
 		} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
+			s.api.Log.Debug("Got a userWithheldNotice")
 			s.C <- *o.UserWithheld
 		} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
+			s.api.Log.Debug("Got a disconnectMessage")
 			s.C <- *o.Disconnect
 		} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
+			s.api.Log.Debug("Got a stallWarning")
 			s.C <- *o.Warning
 		} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
+			s.api.Log.Debug("Got a friendsList")
 			s.C <- *o.Friends
 		} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
+			s.api.Log.Debug("Got a streamDirectMessage")
 			s.C <- *o.DirectMessage
 		} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
+			s.api.Log.Debug("Got a EventTweet")
 			s.C <- *o
 		} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
 			s.C <- *o
 		} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
+			s.api.Log.Debug("Got a Event")
 			s.C <- *o
+		} else {
+			s.api.Log.Debug("Can't parse what I got, droping it")
 		}
 	}
+	s.api.Log.Notice("Leaving twitter stream loop")
 }
 
 func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
@@ -207,6 +225,7 @@ func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *ht
 
 func (s Stream) loop(urlStr string, v url.Values, method int) {
 	defer s.Close()
+	s.api.Log.Debug("Starting loop")
 
 	backoff := time.Duration(2 * time.Second)
 	for resp, err := s.requestStream(urlStr, v, method); err == nil && true == s.open; {
@@ -216,11 +235,11 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 			backoff = time.Duration(2 * time.Second)
 			break
 		case 420, 429, 503:
-			fmt.Println("Twitter streaming: backing off:", resp.Status)
+			s.api.Log.Noticef("Twitter streaming: backing off as got : %+s", resp.Status)
 			backoff += time.Duration(2 * time.Second)
 			break
 		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
-			fmt.Println("Twitter streaming: leaving after an irremediable error:", resp.Status)
+			s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
 			// Close chan in case of error
 			return
 		}
