@@ -145,7 +145,7 @@ type Stream struct {
 	open bool
 }
 
-func (s Stream) Close() {
+func (s *Stream) Close() {
 	if true == s.open {
 		s.open = false
 		close(s.C)
