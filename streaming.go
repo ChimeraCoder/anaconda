@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
@@ -142,14 +143,16 @@ type TooManyFollow struct {
 type Stream struct {
 	api  TwitterApi
 	C    chan interface{}
-	open bool
+	Quit chan bool
 }
 
-func (s *Stream) Close() {
-	if true == s.open {
-		s.api.Log.Notice("Closing stream chan")
-		s.open = false
-		close(s.C)
+// Close ends streaming gently if possible right now
+func (s Stream) Close() {
+	select {
+	case s.Quit <- true:
+		close(s.Quit)
+		s.api.Log.Notice("Stream closing...")
+	default:
 	}
 }
 
@@ -158,58 +161,65 @@ func (s Stream) listen(response http.Response) {
 
 	s.api.Log.Notice("Listenning to twitter socket")
 	scanner := bufio.NewScanner(response.Body)
-	for true == s.open {
+	for {
 		if ok := scanner.Scan(); !ok {
-			break
+			s.api.Log.Notice("twitter socket closed, leaving loop")
+			return
 		}
-		// TODO: DRY
-		j := scanner.Bytes()
-		if scanner.Text() == "" {
-			s.api.Log.Debug("Empty bytes... Moving along")
-			continue
-		} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
-			s.api.Log.Debug("Got a Tweet")
-			s.C <- *o
-		} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
-			s.api.Log.Debug("Got a statusDeletionNotice")
-			s.C <- *o.Delete.Status
-		} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
-			s.api.Log.Debug("Got a locationDeletionNotice")
-			s.C <- *o.ScrubGeo
-		} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
-			s.api.Log.Debug("Got a limitNotice")
-			s.C <- *o.Limit
-		} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
-			s.api.Log.Debug("Got a statusWithheldNotice")
-			s.C <- *o.StatusWithheld
-		} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
-			s.api.Log.Debug("Got a userWithheldNotice")
-			s.C <- *o.UserWithheld
-		} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
-			s.api.Log.Debug("Got a disconnectMessage")
-			s.C <- *o.Disconnect
-		} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
-			s.api.Log.Debug("Got a stallWarning")
-			s.C <- *o.Warning
-		} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
-			s.api.Log.Debug("Got a friendsList")
-			s.C <- *o.Friends
-		} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
-			s.api.Log.Debug("Got a streamDirectMessage")
-			s.C <- *o.DirectMessage
-		} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
-			s.api.Log.Debug("Got a EventTweet")
+
+		select {
+		case <-s.Quit:
+			s.api.Log.Debug("leaving response loop")
+			return
+		default:
+			// TODO: DRY
+			j := scanner.Bytes()
+			if scanner.Text() == "" {
+				s.api.Log.Debug("Empty bytes... Moving along")
+				continue
+			} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
+				s.api.Log.Debug("Got a Tweet")
+				s.C <- *o
+			} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
+				s.api.Log.Debug("Got a statusDeletionNotice")
+				s.C <- *o.Delete.Status
+			} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
+				s.api.Log.Debug("Got a locationDeletionNotice")
+				s.C <- *o.ScrubGeo
+			} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
+				s.api.Log.Debug("Got a limitNotice")
+				s.C <- *o.Limit
+			} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
+				s.api.Log.Debug("Got a statusWithheldNotice")
+				s.C <- *o.StatusWithheld
+			} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
+				s.api.Log.Debug("Got a userWithheldNotice")
+				s.C <- *o.UserWithheld
+			} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
+				s.api.Log.Debug("Got a disconnectMessage")
+				s.C <- *o.Disconnect
+			} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
+				s.api.Log.Debug("Got a stallWarning")
+				s.C <- *o.Warning
+			} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
+				s.api.Log.Debug("Got a friendsList")
+				s.C <- *o.Friends
+			} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
+				s.api.Log.Debug("Got a streamDirectMessage")
+				s.C <- *o.DirectMessage
+			} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
+				s.api.Log.Debug("Got a EventTweet")
 			s.C <- *o
 		} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
-			s.C <- *o
-		} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
-			s.api.Log.Debug("Got a Event")
-			s.C <- *o
-		} else {
-			s.api.Log.Debug("Can't parse what I got, droping it")
+				s.C <- *o
+			} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
+				s.api.Log.Debug("Got a Event")
+				s.C <- *o
+			} else {
+				s.api.Log.Debug("Can't parse what I got, droping it")
+			}
 		}
 	}
-	s.api.Log.Notice("Leaving twitter stream loop")
 }
 
 func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
@@ -224,42 +234,53 @@ func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *ht
 }
 
 func (s Stream) loop(urlStr string, v url.Values, method int) {
-	defer s.Close()
+	defer close(s.C)
+	defer s.api.Log.Debug("Leaving request stream loop")
 	s.api.Log.Debug("Starting loop")
 
-	backoff := time.Duration(2 * time.Second)
-	var resp *http.Response
-	var err error
-	for err == nil && true == s.open {
-		resp, err = s.requestStream(urlStr, v, method)
-
-		switch resp.StatusCode {
-		case 200, 304:
-			s.listen(*resp)
-			backoff = time.Duration(2 * time.Second)
-			break
-		case 420, 429, 503:
-			s.api.Log.Noticef("Twitter streaming: backing off as got : %+s", resp.Status)
-			backoff += time.Duration(2 * time.Second)
-			break
-		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
-			s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
-			// Close chan in case of error
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	baseBackoff := time.Duration(2 * time.Second)
+	calmDownBackoff := time.Duration(10 * time.Second)
+	backoff := baseBackoff
+	for {
+		select {
+		case <-s.Quit:
+			s.api.Log.Notice("leaving stream loop")
 			return
+		default:
+			resp, err := s.requestStream(urlStr, v, method)
+			if err != nil {
+				s.api.Log.Criticalf("Cannot request stream : %s", err)
+				return
+			}
+
+			switch resp.StatusCode {
+			case 200, 304:
+				s.listen(*resp)
+				backoff = baseBackoff
+			case 420, 429, 503:
+				s.api.Log.Noticef("Twitter streaming: waiting %+s and backing off as got : %+s", calmDownBackoff, resp.Status)
+				time.Sleep(calmDownBackoff)
+				backoff = baseBackoff + time.Duration(r.Int63n(10))
+			case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
+				s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
+				// Close chan in case of error
+				return
+			}
+			s.api.Log.Debugf("backing off %s", backoff)
+			time.Sleep(backoff)
 		}
-		time.Sleep(backoff)
 	}
 }
 
 func (s Stream) Start(urlStr string, v url.Values, method int) {
-	s.open = true
 	go s.loop(urlStr, v, method)
 }
 
 func (a TwitterApi) newStream(urlStr string, v url.Values, method int) Stream {
 	stream := Stream{
 		api:  a,
-		open: true,
+		Quit: make(chan bool),
 		C:    make(chan interface{}),
 	}
 	stream.Start(urlStr, v, method)
