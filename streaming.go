@@ -228,7 +228,11 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 	s.api.Log.Debug("Starting loop")
 
 	backoff := time.Duration(2 * time.Second)
-	for resp, err := s.requestStream(urlStr, v, method); err == nil && true == s.open; {
+	var resp *http.Response
+	var err error
+	for err == nil && true == s.open {
+		resp, err = s.requestStream(urlStr, v, method)
+
 		switch resp.StatusCode {
 		case 200, 304:
 			s.listen(*resp)
