@@ -60,7 +60,9 @@ type Coordinates struct {
 // HasCoordinates is a helper function to easily determine if a Tweet has coordinates associated with it
 func (t Tweet) HasCoordinates() bool {
 	if t.Coordinates != nil {
-		return true
+		if t.Coordinates.Type == "Point" {
+			return true
+		}
 	}
 	return false
 }
