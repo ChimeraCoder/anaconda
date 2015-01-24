@@ -42,4 +42,9 @@ type User struct {
 	URL                            string   `json:"url"` // From UTC in seconds
 	UtcOffset                      int      `json:"utc_offset"`
 	Verified                       bool     `json:"verified"`
+	WithheldInCountries            string    `json:"withheld_in_countries"`
+	WithheldScope                  string    `json:"withheld_scope"`
 }
+
+// Provide language translator from BCP-47 to human readable format for Lang field?
+// Available through golang.org/x/text/language, deserves further investigation

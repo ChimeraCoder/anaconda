@@ -1,38 +1,39 @@
 package anaconda
 
 import (
+	"fmt"
 	"time"
 )
 
 type Tweet struct {
 	Contributors         []Contributor     `json:"contributors"` // Not yet generally available to all, so hard to test
 	Coordinates          *Coordinates      `json:"coordinates"`
-	CreatedAt            string      `json:"created_at"`
-	Entities             Entities    `json:"entities"`
-	FavoriteCount        int         `json:"favorite_count"`
-	Favorited            bool        `json:"favorited"`
-	FilterLevel          string      `json:"filter_level"`
-	Id                   int64       `json:"id"`
-	IdStr                string      `json:"id_str"`
-	InReplyToScreenName  string      `json:"in_reply_to_screen_name"`
-	InReplyToStatusID    int64       `json:"in_reply_to_status_id"`
-	InReplyToStatusIdStr string      `json:"in_reply_to_status_id_str"`
-	InReplyToUserID      int64       `json:"in_reply_to_user_id"`
-	InReplyToUserIdStr   string      `json:"in_reply_to_user_id_str"`
-	Lang                 string      `json:"lang"`
-	Place                Place       `json:"place"`
-	PossiblySensitive    bool        `json:"possibly_sensitive"`
-	RetweetCount         int         `json:"retweet_count"`
-	Retweeted            bool        `json:"retweeted"`
-	RetweetedStatus      *Tweet      `json:"retweeted_status"`
-	Source               string      `json:"source"`
+	CreatedAt            string            `json:"created_at"`
+	Entities             Entities          `json:"entities"`
+	FavoriteCount        int               `json:"favorite_count"`
+	Favorited            bool              `json:"favorited"`
+	FilterLevel          string            `json:"filter_level"`
+	Id                   int64             `json:"id"`
+	IdStr                string            `json:"id_str"`
+	InReplyToScreenName  string            `json:"in_reply_to_screen_name"`
+	InReplyToStatusID    int64             `json:"in_reply_to_status_id"`
+	InReplyToStatusIdStr string            `json:"in_reply_to_status_id_str"`
+	InReplyToUserID      int64             `json:"in_reply_to_user_id"`
+	InReplyToUserIdStr   string            `json:"in_reply_to_user_id_str"`
+	Lang                 string            `json:"lang"`
+	Place                Place             `json:"place"`
+	PossiblySensitive    bool              `json:"possibly_sensitive"`
+	RetweetCount         int               `json:"retweet_count"`
+	Retweeted            bool              `json:"retweeted"`
+	RetweetedStatus      *Tweet            `json:"retweeted_status"`
+	Source               string            `json:"source"`
 	Scopes               map[string]string `json:"scopes"`
-	Text                 string      `json:"text"`
-	Truncated            bool        `json:"truncated"`
-	User                 User        `json:"user"`
-	WithheldCopyright    bool        `json:"withheld_copyright"`
-	WithheldInCountries  []string    `json:"withheld_in_countries"`
-	WithheldScope        string      `json:"withheld_scope"`
+	Text                 string            `json:"text"`
+	Truncated            bool              `json:"truncated"`
+	User                 User              `json:"user"`
+	WithheldCopyright    bool              `json:"withheld_copyright"`
+	WithheldInCountries  []string          `json:"withheld_in_countries"`
+	WithheldScope        string            `json:"withheld_scope"`
 
 	//Geo is deprecated
 	//Geo                  interface{} `json:"geo"`
@@ -60,7 +61,9 @@ type Coordinates struct {
 // HasCoordinates is a helper function to easily determine if a Tweet has coordinates associated with it
 func (t Tweet) HasCoordinates() bool {
 	if t.Coordinates != nil {
-		return true
+		if t.Coordinates.Type == "Point" {
+			return true
+		}
 	}
 	return false
 }
@@ -72,7 +75,7 @@ func (t Tweet) Latitude() (float64, error) {
 	if t.HasCoordinates() {
 		return t.Coordinates.Coordinates[1], nil
 	}
-	return 0, errors.New("No Coordinates in this Tweet")
+	return 0, fmt.Errorf("No Coordinates in this Tweet")
 }
 
 // Longitude is a convenience wrapper that returns the longitude easily
@@ -80,7 +83,7 @@ func (t Tweet) Longitude() (float64, error) {
 	if t.HasCoordinates() {
 		return t.Coordinates.Coordinates[0], nil
 	}
-	return 0, errors.New("No Coordinates in this Tweet")
+	return 0, fmt.Errorf("No Coordinates in this Tweet")
 }
 
 // X is a concenience wrapper which returns the X (Longitude) coordinate easily
