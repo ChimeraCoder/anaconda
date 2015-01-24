@@ -28,7 +28,7 @@ Queries are conducted using a pointer to an authenticated `TwitterApi` struct. I
 
 ````go
 searchResult, _ := api.GetSearch("golang", nil)
-for _ , tweet := range searchResult {
+for _ , tweet := range searchResult.Statuses {
     fmt.Println(tweet.Text)
 }   
 ````

@@ -51,6 +51,6 @@ func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, er
 	// Set other values before calling this method:
 	// page, count, include_entities
 	response_ch := make(chan response)
-	a.queryQueue <- query{"http://api.twitter.com/1.1/users/search.json", v, &u, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/users/search.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }

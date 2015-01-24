@@ -53,19 +53,19 @@ func Test_TwitterApi_GetSearch(t *testing.T) {
 	}
 
 	// Unless something is seriously wrong, there should be at least two tweets
-	if len(search_result) < 2 {
-		t.Errorf("Expected 2 or more tweets, and found %d", len(search_result))
+	if len(search_result.Statuses) < 2 {
+		t.Errorf("Expected 2 or more tweets, and found %d", len(search_result.Statuses))
 	}
 
 	// Check that at least one tweet is non-empty
-	for _, tweet := range search_result {
+	for _, tweet := range search_result.Statuses {
 		if tweet.Text != "" {
 			return
 		}
 		fmt.Print(tweet.Text)
 	}
 
-	t.Errorf("All %d tweets had empty text", len(search_result))
+	t.Errorf("All %d tweets had empty text", len(search_result.Statuses))
 }
 
 // Test that a valid user can be fetched
@@ -258,7 +258,7 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 	after := time.Now()
 
 	if difference := after.Sub(now); difference < MIN_DELAY {
-		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
+		t.Errorf("Expected delay of at least %s. Actual delay: %s", MIN_DELAY.String(), difference.String())
 	}
 
 	// Reset the delay to its previous value
@@ -266,7 +266,11 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 }
 
 func Test_DMScreenName(t *testing.T) {
-	message, err := api.PostDMToScreenName("Test the anaconda lib", "exchgr")
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
 	if err != nil {
 		t.Error(err)
 		return

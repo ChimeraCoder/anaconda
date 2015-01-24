@@ -15,6 +15,21 @@ func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error) {
 	return tweet, (<-response_ch).err
 }
 
+func (a TwitterApi) GetTweetsLookupByIds(ids []int64, v url.Values) (tweet []Tweet, err error) {
+	var pids string
+	for w, i := range ids {
+		pids += strconv.FormatInt(i, 10)
+		if w != len(ids)-1 {
+			pids += ","
+		}
+	}
+	v = cleanValues(v)
+	v.Set("id", pids)
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/statuses/lookup.json", v, &tweet, _GET, response_ch}
+	return tweet, (<-response_ch).err
+}
+
 func (a TwitterApi) GetRetweets(id int64, v url.Values) (tweets []Tweet, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/statuses/retweets/%d.json", id), v, &tweets, _GET, response_ch}
