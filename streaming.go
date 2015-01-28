@@ -146,14 +146,12 @@ type Stream struct {
 	Quit chan bool
 }
 
-// Close ends streaming gently if possible right now
+// Close ends streaming
 func (s Stream) Close() {
-	select {
-	case s.Quit <- true:
-		close(s.Quit)
-		s.api.Log.Notice("Stream closing...")
-	default:
-	}
+	s.api.Log.Notice("Stream closing...")
+	s.Quit <- true
+	close(s.Quit)
+	s.api.Log.Debug("Stream closed.")
 }
 
 func (s Stream) listen(response http.Response) {
