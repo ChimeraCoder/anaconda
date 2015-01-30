@@ -6,24 +6,26 @@ type User struct {
 	DefaultProfile                 bool      `json:"default_profile"`
 	DefaultProfileImage            bool      `json:"default_profile_image"`
 	Description                    string    `json:"description"`
+	Entities                       *Entities `json:"entities"`
 	FavouritesCount                int       `json:"favourites_count"`
 	FollowRequestSent              bool      `json:"follow_request_sent"`
-	FollowersCount                 int       `json:"followers_count"`
 	Following                      bool      `json:"following"`
+	FollowersCount                 int       `json:"followers_count"`
 	FriendsCount                   int       `json:"friends_count"`
 	GeoEnabled                     bool      `json:"geo_enabled"`
 	Id                             int64     `json:"id"`
 	IdStr                          string    `json:"id_str"`
 	IsTranslator                   bool      `json:"is_translator"`
-	Lang                           string    `json:"lang"`
+	Lang                           string    `json:"lang"` // BCP-47 code of user defined language
 	ListedCount                    int64     `json:"listed_count"`
-	Location                       string    `json:"location"`
+	Location                       string    `json:"location"` // User defined location
 	Name                           string    `json:"name"`
 	Notifications                  bool      `json:"notifications"`
 	ProfileBackgroundColor         string    `json:"profile_background_color"`
 	ProfileBackgroundImageURL      string    `json:"profile_background_image_url"`
 	ProfileBackgroundImageUrlHttps string    `json:"profile_background_image_url_https"`
 	ProfileBackgroundTile          bool      `json:"profile_background_tile"`
+	ProfileBannerURL               string    `json:"profile_banner_url"`
 	ProfileImageURL                string    `json:"profile_image_url"`
 	ProfileImageUrlHttps           string    `json:"profile_image_url_https"`
 	ProfileLinkColor               string    `json:"profile_link_color"`
@@ -38,7 +40,11 @@ type User struct {
 	StatusesCount                  int64     `json:"statuses_count"`
 	TimeZone                       string    `json:"time_zone"`
 	URL                            string    `json:"url"`
-	UtcOffset                      int       `json:"utc_offset"`
+	UtcOffset                      int       `json:"utc_offset"` // From UTC in seconds
 	Verified                       bool      `json:"verified"`
-	Entities                       *Entities `json:"entities"`
+	WithheldInCountries            string    `json:"withheld_in_countries"`
+	WithheldScope                  string    `json:"withheld_scope"`
 }
+
+// Provide language translator from BCP-47 to human readable format for Lang field?
+// Available through golang.org/x/text/language, deserves further investigation

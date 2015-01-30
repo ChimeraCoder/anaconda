@@ -13,18 +13,27 @@ import (
 const (
 	//Error code defintions match the Twitter documentation
 	//https://dev.twitter.com/docs/error-codes-responses
-	TwitterErrorCouldNotAuthenticate    = 32
-	TwitterErrorDoesNotExist            = 34
-	TwitterErrorAccountSuspended        = 64
-	TwitterErrorApi1Deprecation         = 68 //This should never be needed
-	TwitterErrorRateLimitExceeded       = 88
-	TwitterErrorInvalidToken            = 89
-	TwitterErrorOverCapacity            = 130
-	TwitterErrorInternalError           = 131
-	TwitterErrorCouldNotAuthenticateYou = 135
-	TwitterErrorStatusIsADuplicate      = 187
-	TwitterErrorBadAuthenticationData   = 215
-	TwitterErrorUserMustVerifyLogin     = 231
+	TwitterErrorCouldNotAuthenticate     = 32
+	TwitterErrorDoesNotExist             = 34
+	TwitterErrorAccountSuspended         = 64
+	TwitterErrorApi1Deprecation          = 68 //This should never be needed
+	TwitterErrorRateLimitExceeded        = 88
+	TwitterErrorInvalidToken             = 89
+	TwitterErrorSSLRequired              = 92
+	TwitterErrorOverCapacity             = 130
+	TwitterErrorInternalError            = 131
+	TwitterErrorCouldNotAuthenticateYou  = 135
+	TwitterErrorUnableToFollowMore       = 161
+	TwitterErrorNotAuthorizedToSeeStatus = 179
+	TwitterErrorOverStatusUpdateLimit    = 185
+	TwitterErrorStatusIsADuplicate       = 187
+	TwitterErrorBadAuthenticationData    = 215
+	TwitterErrorRequestAppearsAutomated  = 226
+	TwitterErrorUserMustVerifyLogin      = 231
+	TwitterErrorEndpointRetired          = 251
+	TwitterErrorCannotPerformWrite       = 261
+	TwitterErrorCannotMuteSelf           = 271
+	TwitterErrorCannotMuteUser           = 272
 )
 
 type ApiError struct {
