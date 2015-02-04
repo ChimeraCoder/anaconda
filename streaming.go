@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/dustin/go-jsonpointer"
@@ -141,17 +142,23 @@ type TooManyFollow struct {
 // May be we could pass it a Logger interface to allow the
 // stream to log in the right place ?
 type Stream struct {
-	api  TwitterApi
-	C    chan interface{}
-	Quit chan bool
+	api       TwitterApi
+	C         chan interface{}
+	Quit      chan bool
+	waitGroup *sync.WaitGroup
 }
 
-// Close ends streaming
-func (s Stream) Close() {
+// Interrupt starts the finishing sequence
+func (s Stream) Interrupt() {
 	s.api.Log.Notice("Stream closing...")
-	s.Quit <- true
 	close(s.Quit)
 	s.api.Log.Debug("Stream closed.")
+}
+
+//End wait for closability
+func (s Stream) End() {
+	s.waitGroup.Wait()
+	close(s.C)
 }
 
 func (s Stream) listen(response http.Response) {
@@ -232,9 +239,8 @@ func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *ht
 }
 
 func (s Stream) loop(urlStr string, v url.Values, method int) {
-	defer close(s.C)
 	defer s.api.Log.Debug("Leaving request stream loop")
-	s.api.Log.Debug("Starting loop")
+	defer s.waitGroup.Done()
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	baseBackoff := time.Duration(2 * time.Second)
@@ -249,6 +255,8 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 			resp, err := s.requestStream(urlStr, v, method)
 			if err != nil {
 				s.api.Log.Criticalf("Cannot request stream : %s", err)
+				s.Quit <- true
+				// trigger quit but donnot close chan
 				return
 			}
 
@@ -264,7 +272,8 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 				time.Sleep(backoff)
 			case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
 				s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
-				// Close chan in case of error
+				s.Quit <- true
+				// trigger quit but donnot close chan
 				return
 			}
 
@@ -273,14 +282,16 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 }
 
 func (s Stream) Start(urlStr string, v url.Values, method int) {
+	s.waitGroup.Add(1)
 	go s.loop(urlStr, v, method)
 }
 
 func (a TwitterApi) newStream(urlStr string, v url.Values, method int) Stream {
 	stream := Stream{
-		api:  a,
-		Quit: make(chan bool),
-		C:    make(chan interface{}),
+		api:       a,
+		Quit:      make(chan bool),
+		C:         make(chan interface{}),
+		waitGroup: &sync.WaitGroup{},
 	}
 	stream.Start(urlStr, v, method)
 	return stream
