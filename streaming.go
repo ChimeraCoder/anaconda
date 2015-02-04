@@ -260,13 +260,14 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 				s.api.Log.Noticef("Twitter streaming: waiting %+s and backing off as got : %+s", calmDownBackoff, resp.Status)
 				time.Sleep(calmDownBackoff)
 				backoff = baseBackoff + time.Duration(r.Int63n(10))
+				s.api.Log.Debugf("backing off %s", backoff)
+				time.Sleep(backoff)
 			case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
 				s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
 				// Close chan in case of error
 				return
 			}
-			s.api.Log.Debugf("backing off %s", backoff)
-			time.Sleep(backoff)
+
 		}
 	}
 }
