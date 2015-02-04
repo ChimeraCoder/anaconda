@@ -70,6 +70,8 @@ type TwitterApi struct {
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
 	HttpClient           *http.Client
+	Log                  Logger
+	// Default logger is silent
 }
 
 type query struct {
@@ -94,7 +96,17 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false, http.DefaultClient}
+	c := &TwitterApi{
+		Credentials: &oauth.Credentials{
+			Token:  access_token,
+			Secret: access_token_secret,
+		},
+		queryQueue:           queue,
+		bucket:               nil,
+		returnRateLimitError: false,
+		HttpClient:           http.DefaultClient,
+		Log:                  silentLogger{},
+	}
 	go c.throttledQuery()
 	return c
 }
