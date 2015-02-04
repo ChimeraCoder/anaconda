@@ -207,8 +207,8 @@ func (s Stream) listen(response http.Response) {
 				s.C <- *o.DirectMessage
 			} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
 				s.api.Log.Debug("Got a EventTweet")
-			s.C <- *o
-		} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
+				s.C <- *o
+			} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
 				s.C <- *o
 			} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
 				s.api.Log.Debug("Got a Event")
