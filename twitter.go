@@ -70,8 +70,10 @@ type TwitterApi struct {
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
 	HttpClient           *http.Client
-	Log                  Logger
+
+	// Currently used only for the streaming API
 	// Default logger is silent
+	Log Logger
 }
 
 type query struct {
