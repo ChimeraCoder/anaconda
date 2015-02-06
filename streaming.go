@@ -149,6 +149,7 @@ type Stream struct {
 	C         chan interface{}
 	Quit      chan bool
 	waitGroup sync.WaitGroup
+	Stats     StreamStats
 }
 
 // Interrupt starts the finishing sequence
@@ -165,6 +166,8 @@ func (s *Stream) End() {
 }
 
 func (s *Stream) listen(response http.Response) {
+	s.Stats.Listened()
+	defer s.Stats.Disconnected()
 	defer response.Body.Close()
 
 	s.api.Log.Notice("Listenning to twitter socket")
@@ -231,6 +234,7 @@ func (s *Stream) listen(response http.Response) {
 }
 
 func (s *Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
+	s.Stats.Requested()
 	switch method {
 	case _GET:
 		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
@@ -255,6 +259,7 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 			s.api.Log.Notice("leaving stream loop")
 			return
 		default:
+
 			resp, err := s.requestStream(urlStr, v, method)
 			if err != nil {
 				s.api.Log.Criticalf("Cannot request stream : %s", err)
@@ -268,6 +273,7 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 				s.listen(*resp)
 				backoff = baseBackoff
 			case 420, 429, 503:
+				s.Stats.Backedoff()
 				s.api.Log.Noticef("Twitter streaming: waiting %+s and backing off as got : %+s", calmDownBackoff, resp.Status)
 				time.Sleep(calmDownBackoff)
 				backoff = baseBackoff + time.Duration(r.Int63n(10))
@@ -297,6 +303,7 @@ func (a TwitterApi) newStream(urlStr string, v url.Values, method int) *Stream {
 		Quit:      make(chan bool),
 		C:         make(chan interface{}),
 		waitGroup: sync.WaitGroup{},
+		Stats:     StreamStats{},
 	}
 	stream.Start(urlStr, v, method)
 	return &stream
