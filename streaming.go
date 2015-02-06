@@ -147,23 +147,23 @@ type Stream struct {
 	api       TwitterApi
 	C         chan interface{}
 	Quit      chan bool
-	waitGroup *sync.WaitGroup
+	waitGroup sync.WaitGroup
 }
 
 // Interrupt starts the finishing sequence
-func (s Stream) Interrupt() {
+func (s *Stream) Interrupt() {
 	s.api.Log.Notice("Stream closing...")
 	close(s.Quit)
 	s.api.Log.Debug("Stream closed.")
 }
 
 //End wait for closability
-func (s Stream) End() {
+func (s *Stream) End() {
 	s.waitGroup.Wait()
 	close(s.C)
 }
 
-func (s Stream) listen(response http.Response) {
+func (s *Stream) listen(response http.Response) {
 	defer response.Body.Close()
 
 	s.api.Log.Notice("Listenning to twitter socket")
@@ -229,7 +229,7 @@ func (s Stream) listen(response http.Response) {
 	}
 }
 
-func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
+func (s *Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
 		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
@@ -240,7 +240,7 @@ func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *ht
 	return nil, fmt.Errorf("HTTP method not yet supported")
 }
 
-func (s Stream) loop(urlStr string, v url.Values, method int) {
+func (s *Stream) loop(urlStr string, v url.Values, method int) {
 	defer s.api.Log.Debug("Leaving request stream loop")
 	defer s.waitGroup.Done()
 
@@ -285,42 +285,42 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 	}
 }
 
-func (s Stream) Start(urlStr string, v url.Values, method int) {
+func (s *Stream) Start(urlStr string, v url.Values, method int) {
 	s.waitGroup.Add(1)
 	go s.loop(urlStr, v, method)
 }
 
-func (a TwitterApi) newStream(urlStr string, v url.Values, method int) Stream {
+func (a TwitterApi) newStream(urlStr string, v url.Values, method int) *Stream {
 	stream := Stream{
 		api:       a,
 		Quit:      make(chan bool),
 		C:         make(chan interface{}),
-		waitGroup: &sync.WaitGroup{},
+		waitGroup: sync.WaitGroup{},
 	}
 	stream.Start(urlStr, v, method)
-	return stream
+	return &stream
 }
 
-func (a TwitterApi) UserStream(v url.Values) (stream Stream) {
+func (a TwitterApi) UserStream(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlUserStream+"/user.json", v, _GET)
 }
 
-func (a TwitterApi) PublicStreamSample(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamSample(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/sample.json", v, _GET)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/firehose.json", v, _GET)
 }
 
 // XXX: PublicStream(Track|Follow|Locations) func is needed?
-func (a TwitterApi) PublicStreamFilter(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamFilter(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/filter.json", v, _POST)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) SiteStream(v url.Values) (stream Stream) {
+func (a TwitterApi) SiteStream(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlSiteStream+"/site.json", v, _GET)
 }
 
