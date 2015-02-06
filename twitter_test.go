@@ -228,7 +228,7 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
 	}
 
-	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
+	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist && code != anaconda.TwitterErrorDoesNotExist2 {
 		if code == anaconda.TwitterErrorRateLimitExceeded {
 			t.Errorf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
 		} else {
