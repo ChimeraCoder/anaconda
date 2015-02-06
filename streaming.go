@@ -140,7 +140,8 @@ type TooManyFollow struct {
 // If twitter response is one of 420, 429 or 503 (meaning "wait a sec")
 // the loop retries to open the socket with a simple autogrowing backoff.
 //
-// When finished you can call stream.Close() to terminate remote connection.
+// When finished streaming you call stream.Interrupt() to initiate termination process.
+// Then call stream.End() if you want your to wait until everything is closed.
 //
 
 type Stream struct {
