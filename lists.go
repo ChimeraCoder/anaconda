@@ -49,6 +49,22 @@ func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, e
 	return listResponse.Lists, (<-response_ch).err
 }
 
+// GetListMembers implements /lists/members.json
+// count, and cursor are all optional values
+func (a TwitterApi) GetListMembers(listID int64, v url.Values) (users []User, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("skip_status", strconv.FormatBool(true))
+
+	var listMembersResponse ListMembersResponse
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/lists/members.json", v, &listMembersResponse, _GET, response_ch}
+	return listMembersResponse.Users, (<-response_ch).err
+}
+
 func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (tweets []Tweet, err error) {
 	if v == nil {
 		v = url.Values{}

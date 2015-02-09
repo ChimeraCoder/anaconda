@@ -6,6 +6,12 @@ type ListResponse struct {
 	Lists          []List `json:"lists"`
 }
 
+type ListMembersResponse struct {
+	PreviousCursor int    `json:"previous_cursor"`
+	NextCursor     int    `json:"next_cursor"`
+	Users          []User `json:"users"`
+}
+
 type AddUserToListResponse struct {
 	Users []User `json:"users"`
 }
