@@ -261,11 +261,18 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 		default:
 
 			resp, err := s.requestStream(urlStr, v, method)
+			s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
 			if err != nil {
-				s.api.Log.Criticalf("Cannot request stream : %s", err)
-				s.Quit <- true
-				// trigger quit but donnot close chan
-				return
+				if err.Error() == "EOF" {
+					// Sometimes twitter closes the stream
+					// right away with EOF as of a rate limit
+					resp.StatusCode = 420
+				} else {
+					s.api.Log.Criticalf("Cannot request stream : %s", err)
+					s.Quit <- true
+					// trigger quit but donnot close chan
+					return
+				}
 			}
 
 			switch resp.StatusCode {
