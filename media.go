@@ -22,6 +22,6 @@ func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	var mediaResponse Media
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
 	return mediaResponse, (<-response_ch).err
 }
