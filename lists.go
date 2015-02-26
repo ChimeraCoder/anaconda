@@ -40,7 +40,6 @@ func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, e
 		v = url.Values{}
 	}
 	v.Set("user_id", strconv.FormatInt(userID, 10))
-	v.Set("count", strconv.FormatInt(userID, 10))
 
 	var listResponse ListResponse
 
