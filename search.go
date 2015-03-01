@@ -13,7 +13,7 @@ type SearchMetadata struct {
 	Count         int     `json:"count"`
 	SinceId       int64   `json:"since_id"`
 	SinceIdString string  `json:"since_id_str"`
-	NextResults		string	`json:"next_results"`
+	NextResults   string  `json:"next_results"`
 }
 
 type SearchResponse struct {
