@@ -64,6 +64,8 @@ var oauthClient = oauth.Client{
 	TokenRequestURI:               "https://api.twitter.com/oauth/access_token",
 }
 
+var httpTransport http.RoundTripper
+
 type TwitterApi struct {
 	Credentials          *oauth.Credentials
 	queryQueue           chan query
@@ -98,6 +100,14 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
+    httpClient := http.DefaultClient
+
+    if httpTransport != nil {
+        httpClient = &http.Client{
+            Transport: httpTransport,
+        }
+    }
+
 	c := &TwitterApi{
 		Credentials: &oauth.Credentials{
 			Token:  access_token,
@@ -106,7 +116,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		queryQueue:           queue,
 		bucket:               nil,
 		returnRateLimitError: false,
-		HttpClient:           http.DefaultClient,
+		HttpClient:           httpClient,
 		Log:                  silentLogger{},
 	}
 	go c.throttledQuery()
@@ -123,6 +133,10 @@ func SetConsumerKey(consumer_key string) {
 //This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
+}
+
+func SetHttpTransport(transport http.RoundTripper) {
+    httpTransport = transport
 }
 
 // ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
