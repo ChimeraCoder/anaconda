@@ -135,6 +135,9 @@ func SetConsumerSecret(consumer_secret string) {
 	oauthClient.Credentials.Secret = consumer_secret
 }
 
+// SetHttpTransport will set another RoundTripper instance instead of DefaultTransport. This is
+// particularly usefull when using this library in some resitricted environments like GAE.
+// see https://developers.google.com/appengine/docs/go/urlfetch
 func SetHttpTransport(transport http.RoundTripper) {
     httpTransport = transport
 }
