@@ -92,6 +92,15 @@ To turn off automatic throttling, set the delay to `0`:
     api.SetDelay(0 * time.Second)
 ````
 
+### Google App Engine
+
+Since Google App Engine doesn't make the standard `http.Transport` available, it's necessary to tell Anaconda to use a different client context.
+
+````go
+	api = anaconda.NewTwitterApi("", "")
+	c := appengine.NewContext(r)
+	api.HttpClient.Transport = &urlfetch.Transport{Context: c}
+````
 
 
 License
