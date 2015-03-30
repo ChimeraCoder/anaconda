@@ -121,6 +121,9 @@ type TooManyFollow struct {
 
 // TODO: Site Stream messages. I cant test.
 
+// TODO: May be we could pass it a Logger interface to allow the
+// stream to log in the right place ?
+
 // Stream allows you to stream using one of the
 // PublicStream* or UserStream api methods
 //
@@ -139,8 +142,7 @@ type TooManyFollow struct {
 //
 // When finished you can call stream.Close() to terminate remote connection.
 //
-// May be we could pass it a Logger interface to allow the
-// stream to log in the right place ?
+
 type Stream struct {
 	api       TwitterApi
 	C         chan interface{}

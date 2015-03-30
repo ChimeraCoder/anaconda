@@ -73,6 +73,7 @@ type TwitterApi struct {
 	HttpClient           *http.Client
 
 	// Currently used only for the streaming API
+	// and for checking rate-limiting headers
 	// Default logger is silent
 	Log Logger
 }
@@ -249,6 +250,8 @@ func (c *TwitterApi) throttledQuery() {
 		if err != nil {
 			if apiErr, ok := err.(*ApiError); ok {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError && !c.returnRateLimitError {
+					c.Log.Info(apiErr.Error())
+
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
 					go func() {
