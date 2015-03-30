@@ -34,9 +34,9 @@ type Logger interface {
 	Debugf(format string, args ...interface{})
 }
 
-// SetLogger lets you give us the logger
-// you'd like us to log in.
-// Default logger is silent
+// SetLogger sets the Logger used by the API client.
+// The default logger is silent. BasicLogger will log to STDERR
+// using the log package from the standard library.
 func (c *TwitterApi) SetLogger(l Logger) {
 	c.Log = l
 }
@@ -62,7 +62,7 @@ func (_ silentLogger) Debug(_ ...interface{})                 {}
 func (_ silentLogger) Debugf(format string, _ ...interface{}) {}
 
 // BasicLogger is the equivalent of using log from the standard
-// library to print to STDERR
+// library to print to STDERR.
 var BasicLogger Logger
 
 type basicLogger struct {
