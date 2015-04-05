@@ -2,6 +2,7 @@ package anaconda
 
 import (
 	"net/url"
+	"log"
 )
 
 type SearchMetadata struct {
@@ -13,6 +14,7 @@ type SearchMetadata struct {
 	Count         int     `json:"count"`
 	SinceId       int64   `json:"since_id"`
 	SinceIdString string  `json:"since_id_str"`
+	NextResults   string  `json:"next_results"`
 }
 
 type SearchResponse struct {
@@ -20,10 +22,35 @@ type SearchResponse struct {
 	Metadata SearchMetadata `json:"search_metadata"`
 }
 
+func (sr *SearchResponse) GetNext(a *TwitterApi)  (SearchResponse, error) {
+	log.Printf("GetNext invoked\n")
+	if sr.Metadata.NextResults == "" {
+		return SearchResponse{}, nil
+	}
+	nextUrl, err := url.Parse(sr.Metadata.NextResults)
+	if  err != nil {
+		return SearchResponse{}, err
+	}
+
+	v := nextUrl.Query()
+	log.Printf("GetNext values: %v\n", v)
+	// remove the q parameter from the url.Values so that it
+	// can be added back via the next GetSearch method call.
+	delete(v, "q")
+
+	q, _ := url.QueryUnescape(sr.Metadata.Query)
+	if err != nil {
+		return SearchResponse{}, err
+	}
+	log.Printf("Performing next search with query: %v\n", q)
+	newSr, err := a.GetSearch(q, v)
+	return newSr, err
+}
+
 func (a TwitterApi) GetSearch(queryString string, v url.Values) (sr SearchResponse, err error) {
 	v = cleanValues(v)
 	v.Set("q", queryString)
-
+	log.Printf("Search query:[%v]\n", v)
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/search/tweets.json", v, &sr, _GET, response_ch}
 
