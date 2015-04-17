@@ -277,6 +277,8 @@ func (s Stream) loop(urlStr string, v url.Values, method int) {
 				s.Quit <- true
 				// trigger quit but donnot close chan
 				return
+			default:
+				s.api.Log.Notice("Received unknown status: %+s", resp.StatusCode)
 			}
 
 		}
