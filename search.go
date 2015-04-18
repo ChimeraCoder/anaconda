@@ -21,12 +21,12 @@ type SearchResponse struct {
 	Metadata SearchMetadata `json:"search_metadata"`
 }
 
-func (sr *SearchResponse) GetNext(a *TwitterApi)  (SearchResponse, error) {
+func (sr *SearchResponse) GetNext(a *TwitterApi) (SearchResponse, error) {
 	if sr.Metadata.NextResults == "" {
 		return SearchResponse{}, nil
 	}
 	nextUrl, err := url.Parse(sr.Metadata.NextResults)
-	if  err != nil {
+	if err != nil {
 		return SearchResponse{}, err
 	}
 
