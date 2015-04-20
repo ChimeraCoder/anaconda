@@ -18,7 +18,7 @@
 //Executing queries on an authenticated TwitterApi struct is simple.
 //
 //  searchResult, _ := api.GetSearch("golang", nil)
-//  for _ , tweet := range searchResult {
+//  for _ , tweet := range searchResult.Statuses {
 //      fmt.Print(tweet.Text)
 //  }
 //
