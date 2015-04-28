@@ -261,7 +261,6 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 		default:
 
 			resp, err := s.requestStream(urlStr, v, method)
-			s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
 			if err != nil {
 				if err.Error() == "EOF" {
 					// Sometimes twitter closes the stream
@@ -274,6 +273,7 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 					return
 				}
 			}
+			s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
 
 			switch resp.StatusCode {
 			case 200, 304:
