@@ -10,6 +10,7 @@ type Tweet struct {
 	Coordinates          *Coordinates           `json:"coordinates"`
 	CreatedAt            string                 `json:"created_at"`
 	Entities             Entities               `json:"entities"`
+	ExtendedEntities     Entities               `json:"extended_entities"`
 	FavoriteCount        int                    `json:"favorite_count"`
 	Favorited            bool                   `json:"favorited"`
 	FilterLevel          string                 `json:"filter_level"`

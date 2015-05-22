@@ -28,18 +28,21 @@ type Entities struct {
 		Id          int64
 		Id_str      string
 	}
-	Media []struct {
-		Id              int64
-		Id_str          string
-		Media_url       string
-		Media_url_https string
-		Url             string
-		Display_url     string
-		Expanded_url    string
-		Sizes           MediaSizes
-		Type            string
-		Indices         []int
-	}
+	Media []EntityMedia
+}
+
+type EntityMedia struct {
+	Id              int64
+	Id_str          string
+	Media_url       string
+	Media_url_https string
+	Url             string
+	Display_url     string
+	Expanded_url    string
+	Sizes           MediaSizes
+	Type            string
+	Indices         []int
+	VideoInfo       VideoInfo `json:"video_info"`
 }
 
 type MediaSizes struct {
@@ -53,4 +56,16 @@ type MediaSize struct {
 	W      int
 	H      int
 	Resize string
+}
+
+type VideoInfo struct {
+	AspectRatio    []int     `json:"aspect_ratio"`
+	DurationMillis int64     `json:"duration_millis"`
+	Variants       []Variant `json:"variants"`
+}
+
+type Variant struct {
+	Bitrate     int    `json:"bitrate"`
+	ContentType string `json:"content_type"`
+	Url         string `json:"url"`
 }
