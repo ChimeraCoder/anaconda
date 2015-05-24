@@ -6,34 +6,34 @@ import (
 )
 
 type Tweet struct {
-	Contributors         []Contributor     `json:"contributors"` // Not yet generally available to all, so hard to test
-	Coordinates          *Coordinates      `json:"coordinates"`
-	CreatedAt            string            `json:"created_at"`
-	Entities             Entities          `json:"entities"`
-	FavoriteCount        int               `json:"favorite_count"`
-	Favorited            bool              `json:"favorited"`
-	FilterLevel          string            `json:"filter_level"`
-	Id                   int64             `json:"id"`
-	IdStr                string            `json:"id_str"`
-	InReplyToScreenName  string            `json:"in_reply_to_screen_name"`
-	InReplyToStatusID    int64             `json:"in_reply_to_status_id"`
-	InReplyToStatusIdStr string            `json:"in_reply_to_status_id_str"`
-	InReplyToUserID      int64             `json:"in_reply_to_user_id"`
-	InReplyToUserIdStr   string            `json:"in_reply_to_user_id_str"`
-	Lang                 string            `json:"lang"`
-	Place                Place             `json:"place"`
-	PossiblySensitive    bool              `json:"possibly_sensitive"`
-	RetweetCount         int               `json:"retweet_count"`
-	Retweeted            bool              `json:"retweeted"`
-	RetweetedStatus      *Tweet            `json:"retweeted_status"`
-	Source               string            `json:"source"`
-	Scopes               map[string]string `json:"scopes"`
-	Text                 string            `json:"text"`
-	Truncated            bool              `json:"truncated"`
-	User                 User              `json:"user"`
-	WithheldCopyright    bool              `json:"withheld_copyright"`
-	WithheldInCountries  []string          `json:"withheld_in_countries"`
-	WithheldScope        string            `json:"withheld_scope"`
+	Contributors         []Contributor          `json:"contributors"` // Not yet generally available to all, so hard to test
+	Coordinates          *Coordinates           `json:"coordinates"`
+	CreatedAt            string                 `json:"created_at"`
+	Entities             Entities               `json:"entities"`
+	FavoriteCount        int                    `json:"favorite_count"`
+	Favorited            bool                   `json:"favorited"`
+	FilterLevel          string                 `json:"filter_level"`
+	Id                   int64                  `json:"id"`
+	IdStr                string                 `json:"id_str"`
+	InReplyToScreenName  string                 `json:"in_reply_to_screen_name"`
+	InReplyToStatusID    int64                  `json:"in_reply_to_status_id"`
+	InReplyToStatusIdStr string                 `json:"in_reply_to_status_id_str"`
+	InReplyToUserID      int64                  `json:"in_reply_to_user_id"`
+	InReplyToUserIdStr   string                 `json:"in_reply_to_user_id_str"`
+	Lang                 string                 `json:"lang"`
+	Place                Place                  `json:"place"`
+	PossiblySensitive    bool                   `json:"possibly_sensitive"`
+	RetweetCount         int                    `json:"retweet_count"`
+	Retweeted            bool                   `json:"retweeted"`
+	RetweetedStatus      *Tweet                 `json:"retweeted_status"`
+	Source               string                 `json:"source"`
+	Scopes               map[string]interface{} `json:"scopes"`
+	Text                 string                 `json:"text"`
+	Truncated            bool                   `json:"truncated"`
+	User                 User                   `json:"user"`
+	WithheldCopyright    bool                   `json:"withheld_copyright"`
+	WithheldInCountries  []string               `json:"withheld_in_countries"`
+	WithheldScope        string                 `json:"withheld_scope"`
 
 	//Geo is deprecated
 	//Geo                  interface{} `json:"geo"`
