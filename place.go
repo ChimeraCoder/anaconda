@@ -1,35 +1,57 @@
 package anaconda
 
+import "net/url"
+
 type Place struct {
-	Attributes  map[string]string `json:"attributes"`
-	BoundingBox struct {
-		Coordinates [][][]float64 `json:"coordinates"`
-		Type        string        `json:"type"`
-	} `json:"bounding_box"`
-	ContainedWithin []struct {
-		Attributes  map[string]string `json:"attributes"`
-		BoundingBox struct {
-			Coordinates [][][]float64 `json:"coordinates"`
-			Type        string        `json:"type"`
-		} `json:"bounding_box"`
-		Country     string `json:"country"`
-		CountryCode string `json:"country_code"`
-		FullName    string `json:"full_name"`
-		ID          string `json:"id"`
-		Name        string `json:"name"`
-		PlaceType   string `json:"place_type"`
-		URL         string `json:"url"`
-	} `json:"contained_within"`
-	Country     string `json:"country"`
-	CountryCode string `json:"country_code"`
-	FullName    string `json:"full_name"`
-	Geometry    struct {
-		Coordinates [][][]float64 `json:"coordinates"`
-		Type        string        `json:"type"`
-	} `json:"geometry"`
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	PlaceType string   `json:"place_type"`
-	Polylines []string `json:"polylines"`
-	URL       string   `json:"url"`
+	Result struct {
+		Places []struct {
+			ID              string `json:"id"`
+			URL             string `json:"url"`
+			PlaceType       string `json:"place_type"`
+			Name            string `json:"name"`
+			FullName        string `json:"full_name"`
+			CountryCode     string `json:"country_code"`
+			Country         string `json:"country"`
+			ContainedWithin []struct {
+				ID          string    `json:"id"`
+				URL         string    `json:"url"`
+				PlaceType   string    `json:"place_type"`
+				Name        string    `json:"name"`
+				FullName    string    `json:"full_name"`
+				CountryCode string    `json:"country_code"`
+				Country     string    `json:"country"`
+				Centroid    []float64 `json:"centroid"`
+				BoundingBox struct {
+					Type        string        `json:"type"`
+					Coordinates [][][]float64 `json:"coordinates"`
+				} `json:"bounding_box"`
+				Attributes struct {
+				} `json:"attributes"`
+			} `json:"contained_within"`
+			Centroid    []float64 `json:"centroid"`
+			BoundingBox struct {
+				Type        string        `json:"type"`
+				Coordinates [][][]float64 `json:"coordinates"`
+			} `json:"bounding_box"`
+			Attributes struct {
+			} `json:"attributes"`
+		} `json:"places"`
+	} `json:"result"`
+	Query struct {
+		URL    string `json:"url"`
+		Type   string `json:"type"`
+		Params struct {
+			Accuracy     float64 `json:"accuracy"`
+			Granularity  string  `json:"granularity"`
+			Query        string  `json:"query"`
+			Autocomplete bool    `json:"autocomplete"`
+			TrimPlace    bool    `json:"trim_place"`
+		} `json:"params"`
+	} `json:"query"`
+}
+
+func (a TwitterApi) GeoSearch(v url.Values) (c Place, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/geo/search.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
