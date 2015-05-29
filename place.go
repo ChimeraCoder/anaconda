@@ -33,3 +33,9 @@ type Place struct {
 	Polylines []string `json:"polylines"`
 	URL       string   `json:"url"`
 }
+
+func (a TwitterApi) GeoSearch(v url.Values) (c Place, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/geo/search.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
