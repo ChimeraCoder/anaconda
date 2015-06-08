@@ -23,6 +23,19 @@ type UserCursor struct {
 	Users               []User
 }
 
+type FriendsIdsCursor struct {
+	Previous_cursor     int64
+	Previous_cursor_str string
+	Next_cursor         int64
+	Next_cursor_str     string
+	Ids                 []int64
+}
+
+type FriendsIdsPage struct {
+	Ids   []int64
+	Error error
+}
+
 type Friendship struct {
 	Name        string
 	Id_str      string
@@ -126,10 +139,33 @@ func (a TwitterApi) GetFollowersUser(id int64, v url.Values) (c Cursor, err erro
 
 // Like GetFriendsIds, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
-func (a TwitterApi) GetFriendsIdsAll(v url.Values) (c Cursor, err error) {
-	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/friends/ids.json", v, &c, _GET, response_ch}
-	return c, (<-response_ch).err
+func (a TwitterApi) GetFriendsIdsAll(v url.Values) (result chan FriendsIdsPage) {
+
+	result = make(chan FriendsIdsPage)
+
+	if v == nil {
+		v = url.Values{}
+	}
+	go func(a TwitterApi, v url.Values, result chan FriendsIdsPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetFriendsIds(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFollowersList() returns an error, it must be a different kind of error
+
+			result <- FriendsIdsPage{c.Ids, err}
+
+			next_cursor = c.Next_cursor_str
+			if next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
 }
 
 func (a TwitterApi) GetFriendsUser(id int64, v url.Values) (c Cursor, err error) {
