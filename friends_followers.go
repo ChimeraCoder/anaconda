@@ -49,6 +49,13 @@ type FollowersPage struct {
 	Error     error
 }
 
+// FIXME: Might want to consolidate this with FriendsIdsPage and just
+//		  have "UserIdsPage".
+type FollowersIdsPage struct {
+	Ids   []int64
+	Error error
+}
+
 //GetFriendshipsNoRetweets s a collection of user_ids that the currently authenticated user does not want to receive retweets from.
 //It does not currently support the stringify_ids parameter
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
@@ -60,6 +67,37 @@ func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
 	err = a.apiGet(BaseUrl+"/followers/ids.json", v, &c)
 	return
+}
+
+// Like GetFollowersIds, but returns a channel instead of a cursor and pre-fetches the remaining results
+// This channel is closed once all values have been fetched
+func (a TwitterApi) GetFollowersIdsAll(v url.Values) (result chan FollowersIdsPage) {
+
+	result = make(chan FollowersIdsPage)
+
+	if v == nil {
+		v = url.Values{}
+	}
+	go func(a TwitterApi, v url.Values, result chan FollowersIdsPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetFollowersIds(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFollowersList() returns an error, it must be a different kind of error
+
+			result <- FollowersIdsPage{c.Ids, err}
+
+			next_cursor = c.Next_cursor_str
+			if next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
 }
 
 func (a TwitterApi) GetFriendsIds(v url.Values) (c Cursor, err error) {
