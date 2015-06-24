@@ -189,6 +189,27 @@ func Test_GetFollowersListAll(t *testing.T) {
 	}
 }
 
+// This assumes that the current user has at least two pages' worth of followers
+func Test_GetFollowersIdsAll(t *testing.T) {
+	result := api.GetFollowersIdsAll(nil)
+	i := 0
+
+	for page := range result {
+		if i == 2 {
+			return
+		}
+
+		if page.Error != nil {
+			t.Errorf("Receved error from GetFollowersIdsAll: %s", page.Error)
+		}
+
+		if page.Ids == nil || len(page.Ids) == 0 {
+			t.Errorf("Received invalid value for page %d of followers: %v", i, page.Ids)
+		}
+		i++
+	}
+}
+
 // This assumes that the current user has at least two pages' worth of friends
 func Test_GetFriendsIdsAll(t *testing.T) {
 	result := api.GetFriendsIdsAll(nil)
@@ -209,7 +230,6 @@ func Test_GetFriendsIdsAll(t *testing.T) {
 		i++
 	}
 }
-
 
 // Test that setting the delay actually changes the stored delay value
 func Test_TwitterApi_SetDelay(t *testing.T) {
