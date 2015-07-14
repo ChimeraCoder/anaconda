@@ -120,14 +120,12 @@ type TooManyFollow struct {
 
 // TODO: Site Stream messages. I cant test.
 
-// TODO: May be we could pass it a Logger interface to allow the
-// stream to log in the right place ?
-
 // Stream allows you to stream using one of the
 // PublicStream* or UserStream api methods
 //
-// A go loop is started an gives you an interface{}
-// Which you can cast into a tweet like this :
+// A go loop is started an gives you an stream that sends interface{}
+// objects through it's chan C
+// Objects which you can cast into a tweet like this :
 //    t, ok := o.(twitter.Tweet) // try casting into a tweet
 //    if !ok {
 //      log.Debug("Recieved non tweet message")
@@ -135,12 +133,12 @@ type TooManyFollow struct {
 //
 // If we can't stream the chan will be closed.
 // Otherwise the loop will connect and send streams in the chan.
-// It will also try to reconnect itself after 2s if the connection is lost
+// It will also try to reconnect itself after an exponential backoff time
+// if the connection is lost
 // If twitter response is one of 420, 429 or 503 (meaning "wait a sec")
 // the loop retries to open the socket with a simple autogrowing backoff.
 //
-// When finished streaming you call stream.Interrupt() to initiate termination process.
-// Then call stream.End() if you want your to wait until everything is closed.
+// When finished streaming call stream.Stop() to initiate termination process.
 //
 
 type Stream struct {
