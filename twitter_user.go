@@ -42,7 +42,7 @@ type User struct {
 	URL                            string   `json:"url"` // From UTC in seconds
 	UtcOffset                      int      `json:"utc_offset"`
 	Verified                       bool     `json:"verified"`
-	WithheldInCountries            string   `json:"withheld_in_countries"`
+	WithheldInCountries            []string `json:"withheld_in_countries"`
 	WithheldScope                  string   `json:"withheld_scope"`
 }
 
