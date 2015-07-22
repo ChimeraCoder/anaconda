@@ -183,9 +183,7 @@ func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) err
 		return err
 	}
 	defer resp.Body.Close()
-	response := decodeResponse(resp, data)
-	fmt.Println(response)
-	return response
+	return decodeResponse(resp, data)
 }
 
 // apiPost issues a POST request to the Twitter API and decodes the response JSON to data.

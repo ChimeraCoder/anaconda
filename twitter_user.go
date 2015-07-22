@@ -44,7 +44,6 @@ type User struct {
 	Verified                       bool     `json:"verified"`
 	WithheldInCountries            []string `json:"withheld_in_countries"`
 	WithheldScope                  string   `json:"withheld_scope"`
-	Email                          string   `json:"email"`
 }
 
 // Provide language translator from BCP-47 to human readable format for Lang field?
