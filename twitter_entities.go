@@ -32,17 +32,19 @@ type Entities struct {
 }
 
 type EntityMedia struct {
-	Id              int64
-	Id_str          string
-	Media_url       string
-	Media_url_https string
-	Url             string
-	Display_url     string
-	Expanded_url    string
-	Sizes           MediaSizes
-	Type            string
-	Indices         []int
-	VideoInfo       VideoInfo `json:"video_info"`
+	Id                   int64
+	Id_str               string
+	Media_url            string
+	Media_url_https      string
+	Url                  string
+	Display_url          string
+	Expanded_url         string
+	Sizes                MediaSizes
+	Source_status_id     int64
+	Source_status_id_str string
+	Type                 string
+	Indices              []int
+	VideoInfo            VideoInfo `json:"video_info"`
 }
 
 type MediaSizes struct {
