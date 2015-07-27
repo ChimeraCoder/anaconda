@@ -17,7 +17,7 @@ If the reconnect fails, slow down your reconnect attempts according to the type 
 //	These problems are generally temporary and tend to clear quickly.
 //	Increase the delay in reconnects by 250ms each attempt, up to 16 seconds.
 func NewTCPIPErrBackoff() backoff.BackOffer {
-	return backoff.NewLinear(0, time.Second*16, time.Millisecond*250, mult)
+	return backoff.NewLinear(0, time.Second*16, time.Millisecond*250, 1)
 }
 
 //Back off exponentially for HTTP errors for which reconnecting would be appropriate.

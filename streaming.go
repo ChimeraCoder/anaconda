@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/azr/backoff"
 	"github.com/dustin/go-jsonpointer"
 )
 
@@ -216,7 +215,7 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 	defer s.api.Log.Debug("Leaving request stream loop")
 	defer close(s.C)
 
-	eb := backoff.NewExponential()
+	rlb := NewHTTP420ErrBackoff()
 	for s.run {
 		resp, err := s.requestStream(urlStr, v, method)
 		if err != nil {
@@ -234,10 +233,10 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 		switch resp.StatusCode {
 		case 200, 304:
 			s.listen(*resp)
-			eb.Reset()
+			rlb.Reset()
 		case 420, 429, 503:
 			s.api.Log.Noticef("Twitter streaming: backing off as got : %+s", resp.Status)
-			eb.BackOff()
+			rlb.BackOff()
 		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
 			s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
 			return
