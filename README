@@ -1,6 +1,18 @@
 Anaconda
 ====================
 
+This is a fork of ChimeraCoder/anaconda meant for uses when you have multiple
+apps on twitter and you want to get mass information from twitter. The main
+differences from ChimeraCoder/anaconda are:
+
+ - Users supply a list of valid consumer/access tokens before use
+ - GetFollowersId is now throttled like most of the other API calls
+ - A new method GetFollowersIdsAll is added to get all of the follower for a user
+ - Instead of sleeping when rate limit exceeded, new credentials are taken from the queue
+ - Responses are checked for token invalid errors and those credentials are discarded if this is the case
+
+Original documentation follows:
+
 [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 

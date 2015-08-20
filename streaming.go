@@ -232,9 +232,9 @@ func (s Stream) listen(response http.Response) {
 func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
-		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.client.Get(s.api.HttpClient, &s.api.accessToken, urlStr, v)
 	case _POST:
-		return oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.client.Post(s.api.HttpClient, &s.api.accessToken, urlStr, v)
 	default:
 	}
 	return nil, fmt.Errorf("HTTP method not yet supported")

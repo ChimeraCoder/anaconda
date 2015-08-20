@@ -49,6 +49,7 @@ import (
 
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
+	"sync"
 )
 
 const (
@@ -57,16 +58,81 @@ const (
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
+	tempCredsReqURI = "https://api.twitter.com/oauth/request_token"
+	resourceOwnerAuthURI = "https://api.twitter.com/oauth/authenticate"
+	tokenReqURI = "https://api.twitter.com/oauth/access_token"
 )
 
-var oauthClient = oauth.Client{
-	TemporaryCredentialRequestURI: "https://api.twitter.com/oauth/request_token",
-	ResourceOwnerAuthorizationURI: "https://api.twitter.com/oauth/authenticate",
-	TokenRequestURI:               "https://api.twitter.com/oauth/access_token",
+type clientWithCreds struct {
+	client oauth.Client
+	accessToken oauth.Credentials
+}
+
+type clientCredsQueue struct {
+	ch chan clientWithCreds
+	n int
+	mu sync.Mutex
+}
+
+
+func (q *clientCredsQueue) Add(c clientWithCreds) {
+	q.mu.Lock()
+	q.n += 1
+	q.mu.Unlock()
+	q.ch <- c
+}
+
+func (q *clientCredsQueue) Take() clientWithCreds {
+	ret := <-q.ch
+	q.mu.Lock()
+	q.n -= 1
+	q.mu.Unlock()
+	return ret
+}
+
+func (q *clientCredsQueue) String() string {
+	q.mu.Lock()
+	s := fmt.Sprintf("clientCredsQueue: %d clients in the queue\n", q.n)
+	q.mu.Unlock()
+	return s
+}
+
+var clientQueue = &clientCredsQueue{ch:make(chan clientWithCreds, 15000)}
+
+type TwitterCredentials struct {
+	AccessToken string
+	TokenSecret string
+	ConsumerKey string
+	ConsumerSecret string
+}
+
+func AddCredentials(creds ...TwitterCredentials) {
+	for _, cred := range creds {
+		client := oauth.Client{
+			TemporaryCredentialRequestURI: tempCredsReqURI,
+			ResourceOwnerAuthorizationURI: resourceOwnerAuthURI,
+			TokenRequestURI: tokenReqURI,
+			Credentials: oauth.Credentials{
+				Token: cred.ConsumerKey,
+				Secret: cred.ConsumerSecret,
+			},
+		}
+		tok := oauth.Credentials{
+			Token: cred.AccessToken,
+			Secret: cred.TokenSecret,
+		}
+
+		c:= clientWithCreds{
+			client: client,
+			accessToken: tok,
+		}
+
+		clientQueue.Add(c)
+	}
 }
 
 type TwitterApi struct {
-	Credentials          *oauth.Credentials
+	clientWithCreds
 	queryQueue           chan query
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
@@ -96,15 +162,12 @@ const DEFAULT_CAPACITY = 5
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
-func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi {
+func NewTwitterApi() *TwitterApi {
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
 	c := &TwitterApi{
-		Credentials: &oauth.Credentials{
-			Token:  access_token,
-			Secret: access_token_secret,
-		},
+		clientWithCreds:      clientQueue.Take(), // Can block if not enough clients
 		queryQueue:           queue,
 		bucket:               nil,
 		returnRateLimitError: false,
@@ -113,18 +176,6 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	}
 	go c.throttledQuery()
 	return c
-}
-
-//SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
-//This key is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
-func SetConsumerKey(consumer_key string) {
-	oauthClient.Credentials.Token = consumer_key
-}
-
-//SetConsumerSecret will set the application-specific secret used in the initial OAuth process
-//This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
-func SetConsumerSecret(consumer_secret string) {
-	oauthClient.Credentials.Secret = consumer_secret
 }
 
 // ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
@@ -154,21 +205,6 @@ func (c *TwitterApi) GetDelay() time.Duration {
 	return c.bucket.GetRate()
 }
 
-//AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
-//Redirect the user to this URL.
-//This assumes that the consumer key has already been set (using SetConsumerKey).
-func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
-	tempCred, err := oauthClient.RequestTemporaryCredentials(http.DefaultClient, callback, nil)
-	if err != nil {
-		return "", nil, err
-	}
-	return oauthClient.AuthorizationURL(tempCred, nil), tempCred, nil
-}
-
-func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
-	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
-}
-
 func cleanValues(v url.Values) url.Values {
 	if v == nil {
 		return url.Values{}
@@ -178,7 +214,7 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
-	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
+	resp, err := c.client.Get(c.HttpClient, &c.accessToken, urlStr, form)
 	if err != nil {
 		return err
 	}
@@ -188,7 +224,7 @@ func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) err
 
 // apiPost issues a POST request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) error {
-	resp, err := oauthClient.Post(c.HttpClient, c.Credentials, urlStr, form)
+	resp, err := c.client.Post(c.HttpClient, &c.accessToken, urlStr, form)
 	if err != nil {
 		return err
 	}
@@ -250,6 +286,7 @@ func (c *TwitterApi) throttledQuery() {
 		if err != nil {
 			if apiErr, ok := err.(*ApiError); ok {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError && !c.returnRateLimitError {
+					c.Log.Info("Error is rate limited")
 					c.Log.Info(apiErr.Error())
 
 					// If this is a rate-limiting error, re-add the job to the queue
@@ -259,13 +296,31 @@ func (c *TwitterApi) throttledQuery() {
 					}()
 
 					delay := nextWindow.Sub(time.Now())
-					<-time.After(delay)
+					go func(cl clientWithCreds) {
+						c.Log.Infof("Waiting %v to put client back on the queue", delay)
+						<-time.After(delay)
+						c.Log.Info("Delay over")
+						clientQueue.Add(cl)
+					}(c.clientWithCreds)
+
+					c.Log.Info("Attempting to retrieve new client")
+					c.clientWithCreds = clientQueue.Take()
 
 					// Drain the bucket (start over fresh)
 					if c.bucket != nil {
 						c.bucket.Drain()
 					}
 
+					continue
+				} else if apiErr.InvalidToken() {
+					// If token is invalid, re-add to queue
+					go func() {
+						c.queryQueue <- q
+					}()
+					c.Log.Info("Token is invalid, discarding")
+
+					c.Log.Info("Attempting to retrieve new client")
+					c.clientWithCreds = clientQueue.Take()
 					continue
 				}
 			}
