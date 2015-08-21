@@ -87,6 +87,29 @@ func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.T
 	return false, time.Time{}
 }
 
+func (aerr *ApiError) InvalidToken() bool {
+	if aerr.StatusCode == 401 {
+		body := struct {
+			Errors []struct{
+				Code int
+				Message string
+			}
+		}{}
+
+		err := json.Unmarshal([]byte(aerr.Body), &body)
+		if err != nil {
+			return false
+		}
+
+		for _, er := range body.Errors {
+			if er.Code == TwitterErrorInvalidToken {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 //TwitterErrorResponse has an array of Twitter error messages
 //It satisfies the "error" interface
 //For the most part, Twitter seems to return only a single error message

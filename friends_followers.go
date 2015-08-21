@@ -36,6 +36,8 @@ type FriendsIdsPage struct {
 	Error error
 }
 
+type FollowersIdsPage FriendsIdsPage
+
 type Friendship struct {
 	Name        string
 	Id_str      string
@@ -58,8 +60,37 @@ func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 }
 
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
-	err = a.apiGet(BaseUrl+"/followers/ids.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/followers/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
+
+func (a TwitterApi) GetFollowersIdsAll(v url.Values) (result chan FollowersIdsPage) {
+	result = make(chan FollowersIdsPage)
+
+	if v == nil {
+		v = url.Values{}
+	}
+	go func(a TwitterApi, v url.Values, result chan FollowersIdsPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetFollowersIds(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFollowersList() returns an error, it must be a different kind of error
+
+			result <- FollowersIdsPage{c.Ids, err}
+
+			next_cursor = c.Next_cursor_str
+			if next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
 }
 
 func (a TwitterApi) GetFriendsIds(v url.Values) (c Cursor, err error) {
