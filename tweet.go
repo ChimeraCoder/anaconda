@@ -27,6 +27,9 @@ type Tweet struct {
 	RetweetCount         int                    `json:"retweet_count"`
 	Retweeted            bool                   `json:"retweeted"`
 	RetweetedStatus      *Tweet                 `json:"retweeted_status"`
+	QuotedStatusID	     int64		    `json:"quoted_status_id"`
+	QuotedStatusIDStr    string		    `json:"quoted_status_id_str"`
+	QuotedStatus	     *Tweet		    `json:"quoted_status"`
 	Source               string                 `json:"source"`
 	Scopes               map[string]interface{} `json:"scopes"`
 	Text                 string                 `json:"text"`
