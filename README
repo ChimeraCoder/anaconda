@@ -92,6 +92,10 @@ To turn off automatic throttling, set the delay to `0`:
     api.SetDelay(0 * time.Second)
 ````
 
+###Query Queue Persistence
+
+If your code creates a NewTwitterApi in a regularly called function, you'll need to call `.Close()` on the API struct to clear the queryQueue and allow the goroutine to exit. Otherwise you could see goroutine and therefor heap memory leaks in long-running applications.
+
 ### Google App Engine
 
 Since Google App Engine doesn't make the standard `http.Transport` available, it's necessary to tell Anaconda to use a different client context.
