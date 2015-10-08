@@ -21,13 +21,31 @@ type TrendResponse struct {
 	Locations []Location `json:"locations"`
 }
 
-type MegaTrendResponse struct {
-	Response TrendResponse
+type TrendLocation struct {
+	Country     string `json:"country"`
+	CountryCode string `json:"countryCode"`
+	Name        string `json:"name"`
+	ParentId    int    `json:"parentid"`
+	PlaceType   struct {
+		Code int    `json:"code"`
+		Name string `json:"name"`
+	} `json:"placeType"`
+	Url   string `json:"url"`
+	Woeid int32  `json:"woeid"`
 }
 
-func (a TwitterApi) GetTrendsByPlace(v url.Values) (trends []Trend, err error) {
+// https://dev.twitter.com/rest/reference/get/trends/place
+func (a TwitterApi) GetTrendsByPlace(v url.Values) (trendResp TrendResponse, err error) {
 	trendResponse := TrendResponse{}
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/trends/place.json", v, &[]interface{}{&trendResponse}, _GET, response_ch}
-	return trendResponse.Trends, (<-response_ch).err
+	return trendResponse, (<-response_ch).err
+}
+
+// https://dev.twitter.com/rest/reference/get/trends/available
+func (a TwitterApi) GetTrendsAvailableLocations(v url.Values) (locations []TrendLocation, err error) {
+	response_ch := make(chan response)
+	//a.queryQueue <- query{BaseUrl + "/trends/available.json", v, &[]interface{}{&locations}, _GET, response_ch}
+	a.queryQueue <- query{BaseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
+	return locations, (<-response_ch).err
 }
