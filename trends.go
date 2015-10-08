@@ -45,7 +45,13 @@ func (a TwitterApi) GetTrendsByPlace(v url.Values) (trendResp TrendResponse, err
 // https://dev.twitter.com/rest/reference/get/trends/available
 func (a TwitterApi) GetTrendsAvailableLocations(v url.Values) (locations []TrendLocation, err error) {
 	response_ch := make(chan response)
-	//a.queryQueue <- query{BaseUrl + "/trends/available.json", v, &[]interface{}{&locations}, _GET, response_ch}
 	a.queryQueue <- query{BaseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
+	return locations, (<-response_ch).err
+}
+
+// https://dev.twitter.com/rest/reference/get/trends/closest
+func (a TwitterApi) GetTrendsClosestLocations(v url.Values) (locations []TrendLocation, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/trends/closest.json", v, &locations, _GET, response_ch}
 	return locations, (<-response_ch).err
 }
