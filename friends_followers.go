@@ -49,6 +49,11 @@ type FollowersPage struct {
 	Error     error
 }
 
+type FriendsPage struct {
+	Friends []User
+	Error   error
+}
+
 // FIXME: Might want to consolidate this with FriendsIdsPage and just
 //		  have "UserIdsPage".
 type FollowersIdsPage struct {
@@ -134,6 +139,37 @@ func (a TwitterApi) GetFriendsList(v url.Values) (c UserCursor, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{BaseUrl + "/friends/list.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
+}
+
+// Like GetFriendsList, but returns a channel instead of a cursor and pre-fetches the remaining results
+// This channel is closed once all values have been fetched
+func (a TwitterApi) GetFriendsListAll(v url.Values) (result chan FriendsPage) {
+
+	result = make(chan FriendsPage)
+
+	if v == nil {
+		v = url.Values{}
+	}
+	go func(a TwitterApi, v url.Values, result chan FriendsPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetFriendsList(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFriendsListAll() returns an error, it must be a different kind of error
+
+			result <- FriendsPage{c.Users, err}
+
+			next_cursor = c.Next_cursor_str
+			if next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
 }
 
 // Like GetFollowersList, but returns a channel instead of a cursor and pre-fetches the remaining results
