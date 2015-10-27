@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChimeraCoder/anaconda"
+	anaconda "."
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -139,7 +139,29 @@ func Test_GetTweet(t *testing.T) {
 		Screen_name string
 		Id          int64
 		Id_str      string
-	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{Id: 303777106628841472, Id_str: "303777106628841472", Media_url: "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Url: "http://t.co/eSq3ROwu", Display_url: "pic.twitter.com/eSq3ROwu", Expanded_url: "http://twitter.com/golang/status/303777106620452864/photo/1", Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600, H: 450, Resize: "fit"}, Thumb: anaconda.MediaSize{W: 150, H: 150, Resize: "crop"}, Small: anaconda.MediaSize{W: 340, H: 255, Resize: "fit"}, Large: anaconda.MediaSize{W: 1024, H: 768, Resize: "fit"}}, Type: "photo", Indices: []int{94, 114}}}}
+	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{
+		Id:              303777106628841472,
+		Id_str:          "303777106628841472",
+		Media_url:       "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		Url:             "http://t.co/eSq3ROwu",
+		Display_url:     "pic.twitter.com/eSq3ROwu",
+		Expanded_url:    "http://twitter.com/golang/status/303777106620452864/photo/1",
+		Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600,
+			H:      450,
+			Resize: "fit"},
+			Thumb: anaconda.MediaSize{W: 150,
+				H:      150,
+				Resize: "crop"},
+			Small: anaconda.MediaSize{W: 340,
+				H:      255,
+				Resize: "fit"},
+			Large: anaconda.MediaSize{W: 1024,
+				H:      768,
+				Resize: "fit"}},
+		Type: "photo",
+		Indices: []int{94,
+			114}}}}
 	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
 		t.Errorf("Tweet entities differ")
 	}

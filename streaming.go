@@ -4,11 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"io"
 	"net/http"
 	"net/url"
-	"sync"
-	"time"
 
 	"github.com/dustin/go-jsonpointer"
 )
@@ -121,14 +119,12 @@ type TooManyFollow struct {
 
 // TODO: Site Stream messages. I cant test.
 
-// TODO: May be we could pass it a Logger interface to allow the
-// stream to log in the right place ?
-
 // Stream allows you to stream using one of the
 // PublicStream* or UserStream api methods
 //
-// A go loop is started an gives you an interface{}
-// Which you can cast into a tweet like this :
+// A go loop is started an gives you an stream that sends interface{}
+// objects through it's chan C
+// Objects which you can cast into a tweet like this :
 //    t, ok := o.(twitter.Tweet) // try casting into a tweet
 //    if !ok {
 //      log.Debug("Recieved non tweet message")
@@ -136,100 +132,75 @@ type TooManyFollow struct {
 //
 // If we can't stream the chan will be closed.
 // Otherwise the loop will connect and send streams in the chan.
-// It will also try to reconnect itself after 2s if the connection is lost
+// It will also try to reconnect itself after an exponential backoff time
+// if the connection is lost
 // If twitter response is one of 420, 429 or 503 (meaning "wait a sec")
 // the loop retries to open the socket with a simple autogrowing backoff.
 //
-// When finished you can call stream.Close() to terminate remote connection.
+// When finished streaming call stream.Stop() to initiate termination process.
 //
 
 type Stream struct {
-	api       TwitterApi
-	C         chan interface{}
-	Quit      chan bool
-	waitGroup *sync.WaitGroup
+	api TwitterApi
+	C   chan interface{}
+	run bool
 }
 
-// Interrupt starts the finishing sequence
-func (s Stream) Interrupt() {
-	s.api.Log.Notice("Stream closing...")
-	close(s.Quit)
-	s.api.Log.Debug("Stream closed.")
-}
-
-//End wait for closability
-func (s Stream) End() {
-	s.waitGroup.Wait()
-	close(s.C)
-}
-
-func (s Stream) listen(response http.Response) {
-	defer response.Body.Close()
+func (s *Stream) listen(response http.Response) {
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
 
 	s.api.Log.Notice("Listenning to twitter socket")
+	defer s.api.Log.Notice("twitter socket closed, leaving loop")
+
 	scanner := bufio.NewScanner(response.Body)
-	for {
-		if ok := scanner.Scan(); !ok {
-			s.api.Log.Notice("twitter socket closed, leaving loop")
-			return
+
+	for scanner.Scan() && s.run {
+		j := scanner.Bytes()
+		if len(j) == 0 {
+			s.api.Log.Debug("Empty bytes... Moving along")
+		} else {
+			s.C <- jsonToKnownType(j)
 		}
 
-		select {
-		case <-s.Quit:
-			s.api.Log.Debug("leaving response loop")
-			return
-		default:
-			// TODO: DRY
-			j := scanner.Bytes()
-			if scanner.Text() == "" {
-				s.api.Log.Debug("Empty bytes... Moving along")
-				continue
-			} else if o := new(Tweet); jsonAsStruct(j, "/source", o) {
-				s.api.Log.Debug("Got a Tweet")
-				s.C <- *o
-			} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", o) {
-				s.api.Log.Debug("Got a statusDeletionNotice")
-				s.C <- *o.Delete.Status
-			} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", o) {
-				s.api.Log.Debug("Got a locationDeletionNotice")
-				s.C <- *o.ScrubGeo
-			} else if o := new(limitNotice); jsonAsStruct(j, "/limit", o) {
-				s.api.Log.Debug("Got a limitNotice")
-				s.C <- *o.Limit
-			} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", o) {
-				s.api.Log.Debug("Got a statusWithheldNotice")
-				s.C <- *o.StatusWithheld
-			} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", o) {
-				s.api.Log.Debug("Got a userWithheldNotice")
-				s.C <- *o.UserWithheld
-			} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", o) {
-				s.api.Log.Debug("Got a disconnectMessage")
-				s.C <- *o.Disconnect
-			} else if o := new(stallWarning); jsonAsStruct(j, "/warning", o) {
-				s.api.Log.Debug("Got a stallWarning")
-				s.C <- *o.Warning
-			} else if o := new(friendsList); jsonAsStruct(j, "/friends", o) {
-				s.api.Log.Debug("Got a friendsList")
-				s.C <- *o.Friends
-			} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", o) {
-				s.api.Log.Debug("Got a streamDirectMessage")
-				s.C <- *o.DirectMessage
-			} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", o) {
-				s.api.Log.Debug("Got a EventTweet")
-				s.C <- *o
-			} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", o) {
-				s.C <- *o
-			} else if o := new(Event); jsonAsStruct(j, "/target_object", o) {
-				s.api.Log.Debug("Got a Event")
-				s.C <- *o
-			} else {
-				s.api.Log.Debug("Can't parse what I got, droping it")
-			}
-		}
 	}
 }
 
-func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
+func jsonToKnownType(j []byte) interface{} {
+	// TODO: DRY
+	if o := new(Tweet); jsonAsStruct(j, "/source", &o) {
+		return *o
+	} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", &o) {
+		return *o.Delete.Status
+	} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", &o) {
+		return *o.ScrubGeo
+	} else if o := new(limitNotice); jsonAsStruct(j, "/limit", &o) {
+		return *o.Limit
+	} else if o := new(statusWithheldNotice); jsonAsStruct(j, "/status_withheld", &o) {
+		return *o.StatusWithheld
+	} else if o := new(userWithheldNotice); jsonAsStruct(j, "/user_withheld", &o) {
+		return *o.UserWithheld
+	} else if o := new(disconnectMessage); jsonAsStruct(j, "/disconnect", &o) {
+		return *o.Disconnect
+	} else if o := new(stallWarning); jsonAsStruct(j, "/warning", &o) {
+		return *o.Warning
+	} else if o := new(friendsList); jsonAsStruct(j, "/friends", &o) {
+		return *o.Friends
+	} else if o := new(streamDirectMessage); jsonAsStruct(j, "/direct_message", &o) {
+		return *o.DirectMessage
+	} else if o := new(EventTweet); jsonAsStruct(j, "/target_object/source", &o) {
+		return *o
+	} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", &o) {
+		return *o
+	} else if o := new(Event); jsonAsStruct(j, "/target_object", &o) {
+		return *o
+	} else {
+		return nil
+	}
+}
+
+func (s *Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
 		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
@@ -240,87 +211,80 @@ func (s Stream) requestStream(urlStr string, v url.Values, method int) (resp *ht
 	return nil, fmt.Errorf("HTTP method not yet supported")
 }
 
-func (s Stream) loop(urlStr string, v url.Values, method int) {
+func (s *Stream) loop(urlStr string, v url.Values, method int) {
 	defer s.api.Log.Debug("Leaving request stream loop")
-	defer s.waitGroup.Done()
+	defer close(s.C)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	baseBackoff := time.Duration(2 * time.Second)
-	calmDownBackoff := time.Duration(10 * time.Second)
-	backoff := baseBackoff
-	for {
-		select {
-		case <-s.Quit:
-			s.api.Log.Notice("leaving stream loop")
+	rlb := NewHTTP420ErrBackoff()
+	for s.run {
+		resp, err := s.requestStream(urlStr, v, method)
+		if err != nil {
+			if err == io.EOF {
+				// Sometimes twitter closes the stream
+				// right away with EOF as of a rate limit
+				resp.StatusCode = 420
+			} else {
+				s.api.Log.Criticalf("Cannot request stream : %s", err)
+				return
+			}
+		}
+		s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
+
+		switch resp.StatusCode {
+		case 200, 304:
+			s.listen(*resp)
+			rlb.Reset()
+		case 420, 429, 503:
+			s.api.Log.Noticef("Twitter streaming: backing off as got : %+s", resp.Status)
+			rlb.BackOff()
+		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
+			s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
 			return
 		default:
-			resp, err := s.requestStream(urlStr, v, method)
-			if err != nil {
-				s.api.Log.Criticalf("Cannot request stream : %s", err)
-				s.Quit <- true
-				// trigger quit but donnot close chan
-				return
-			}
-
-			switch resp.StatusCode {
-			case 200, 304:
-				s.listen(*resp)
-				backoff = baseBackoff
-			case 420, 429, 503:
-				s.api.Log.Noticef("Twitter streaming: waiting %+s and backing off as got : %+s", calmDownBackoff, resp.Status)
-				time.Sleep(calmDownBackoff)
-				backoff = baseBackoff + time.Duration(r.Int63n(10))
-				s.api.Log.Debugf("backing off %s", backoff)
-				time.Sleep(backoff)
-			case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
-				s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
-				s.Quit <- true
-				// trigger quit but donnot close chan
-				return
-			default:
-				s.api.Log.Notice("Received unknown status: %+s", resp.StatusCode)
-			}
-
+			s.api.Log.Notice("Received unknown status: %+s", resp.StatusCode)
 		}
+
 	}
 }
 
-func (s Stream) Start(urlStr string, v url.Values, method int) {
-	s.waitGroup.Add(1)
+func (s *Stream) Stop() {
+	s.run = false
+}
+
+func (s *Stream) start(urlStr string, v url.Values, method int) {
+	s.run = true
 	go s.loop(urlStr, v, method)
 }
 
-func (a TwitterApi) newStream(urlStr string, v url.Values, method int) Stream {
+func (a TwitterApi) newStream(urlStr string, v url.Values, method int) *Stream {
 	stream := Stream{
-		api:       a,
-		Quit:      make(chan bool),
-		C:         make(chan interface{}),
-		waitGroup: &sync.WaitGroup{},
+		api: a,
+		C:   make(chan interface{}),
 	}
-	stream.Start(urlStr, v, method)
-	return stream
+	stream.start(urlStr, v, method)
+	return &stream
 }
 
-func (a TwitterApi) UserStream(v url.Values) (stream Stream) {
+func (a TwitterApi) UserStream(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlUserStream+"/user.json", v, _GET)
 }
 
-func (a TwitterApi) PublicStreamSample(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamSample(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/sample.json", v, _GET)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamFirehose(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/firehose.json", v, _GET)
 }
 
 // XXX: PublicStream(Track|Follow|Locations) func is needed?
-func (a TwitterApi) PublicStreamFilter(v url.Values) (stream Stream) {
+func (a TwitterApi) PublicStreamFilter(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlStream+"/statuses/filter.json", v, _POST)
 }
 
 // XXX: To use this API authority is requied. but I dont have this. I cant test.
-func (a TwitterApi) SiteStream(v url.Values) (stream Stream) {
+func (a TwitterApi) SiteStream(v url.Values) (stream *Stream) {
 	return a.newStream(BaseUrlSiteStream+"/site.json", v, _GET)
 }
 
