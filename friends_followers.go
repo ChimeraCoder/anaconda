@@ -70,8 +70,9 @@ func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 }
 
 func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
-	err = a.apiGet(BaseUrl+"/followers/ids.json", v, &c)
-	return
+	response_ch := make(chan response)
+	a.queryQueue <- query{BaseUrl + "/followers/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 // Like GetFollowersIds, but returns a channel instead of a cursor and pre-fetches the remaining results
