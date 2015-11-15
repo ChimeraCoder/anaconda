@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -40,9 +41,15 @@ func init() {
 	parsed, _ := url.Parse(server.URL)
 	api.SetBaseUrl(parsed.String() + "/")
 
-	endpointElems := [][]string{
-		[]string{"statuses", "show.json"},
-	}
+	var endpointElems [][]string
+	filepath.Walk("json", func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			elems := strings.Split(path, string(os.PathSeparator))[1:]
+			endpointElems = append(endpointElems, elems)
+		}
+
+		return nil
+	})
 
 	for _, elems := range endpointElems {
 		endpoint := path.Join(elems...)
