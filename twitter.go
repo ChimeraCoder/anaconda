@@ -47,6 +47,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
@@ -190,11 +192,20 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
+	filename := filepath.Join(append([]string{"json"}, strings.Split(strings.TrimPrefix(urlStr, c.baseUrl), "/")...)...)
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
 	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
+	resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, f))
 	return decodeResponse(resp, data)
 }
 
@@ -213,7 +224,7 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
-	return json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(data)
+	return json.NewDecoder(resp.Body).Decode(data)
 }
 
 func NewApiError(resp *http.Response) *ApiError {
