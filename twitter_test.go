@@ -3,7 +3,6 @@ package anaconda_test
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -29,6 +28,33 @@ func init() {
 	anaconda.SetConsumerKey(CONSUMER_KEY)
 	anaconda.SetConsumerSecret(CONSUMER_SECRET)
 	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
+	// test server
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	parsed, _ := url.Parse(server.URL)
+	api.SetBaseUrl(parsed.String() + "/")
+
+	endpointElems := [][]string{
+		[]string{"statuses", "show.json"},
+	}
+
+	for _, elems := range endpointElems {
+		endpoint := path.Join(elems...)
+		filename := filepath.Join(append([]string{"json"}, elems...)...)
+
+		mux.HandleFunc("/"+endpoint, func(w http.ResponseWriter, r *http.Request) {
+			f, err := os.Open(filename)
+			if err != nil {
+				// either the file does not exist
+				// or something is seriously wrong with the testing environment
+				panic(err)
+			}
+			defer f.Close()
+			io.Copy(w, f)
+		})
+	}
 }
 
 // Test_TwitterCredentials tests that non-empty Twitter credentials are set
@@ -117,27 +143,6 @@ func Test_GetFavorites(t *testing.T) {
 func Test_GetTweet(t *testing.T) {
 	const tweetId = 303777106620452864
 	const tweetText = `golang-syd is in session. Dave Symonds is now talking about API design and protobufs. #golang http://t.co/eSq3ROwu`
-
-	elems := []string{"statuses", "show.json"}
-	endpoint := path.Join(elems...)
-	filename := filepath.Join(append([]string{"json"}, elems...)...)
-
-	// test server
-	mux := http.NewServeMux()
-	server := httptest.NewServer(mux)
-
-	parsed, _ := url.Parse(server.URL)
-	api.SetBaseUrl(parsed.String() + "/")
-
-	log.Printf("endpoint is %s", endpoint)
-	mux.HandleFunc("/"+endpoint, func(w http.ResponseWriter, r *http.Request) {
-		f, err := os.Open(filename)
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		io.Copy(w, f)
-	})
 
 	tweet, err := api.GetTweet(tweetId, nil)
 	if err != nil {
