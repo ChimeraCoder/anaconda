@@ -42,11 +42,9 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
@@ -213,7 +211,7 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
-	return json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(data)
+	return json.NewDecoder(resp.Body).Decode(data)
 }
 
 func NewApiError(resp *http.Response) *ApiError {
