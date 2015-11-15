@@ -42,9 +42,11 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
@@ -76,6 +78,10 @@ type TwitterApi struct {
 	// and for checking rate-limiting headers
 	// Default logger is silent
 	Log Logger
+
+	// used for testing
+	// defaults to BaseUrl
+	baseUrl string
 }
 
 type query struct {
@@ -110,6 +116,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		returnRateLimitError: false,
 		HttpClient:           http.DefaultClient,
 		Log:                  silentLogger{},
+		baseUrl:              BaseUrl,
 	}
 	go c.throttledQuery()
 	return c
@@ -152,6 +159,11 @@ func (c *TwitterApi) SetDelay(t time.Duration) {
 
 func (c *TwitterApi) GetDelay() time.Duration {
 	return c.bucket.GetRate()
+}
+
+// SetBaseUrl is experimental and may be removed in future releases.
+func (c *TwitterApi) SetBaseUrl(baseUrl string) {
+	c.baseUrl = baseUrl
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -201,7 +213,7 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
-	return json.NewDecoder(resp.Body).Decode(data)
+	return json.NewDecoder(io.TeeReader(resp.Body, os.Stdout)).Decode(data)
 }
 
 func NewApiError(resp *http.Response) *ApiError {

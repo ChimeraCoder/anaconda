@@ -11,7 +11,7 @@ func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error) {
 	v.Set("id", strconv.FormatInt(id, 10))
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/statuses/show.json", v, &tweet, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/statuses/show.json", v, &tweet, _GET, response_ch}
 	return tweet, (<-response_ch).err
 }
 
