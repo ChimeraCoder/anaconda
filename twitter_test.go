@@ -29,6 +29,10 @@ func init() {
 	anaconda.SetConsumerSecret(CONSUMER_SECRET)
 	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
+	if CONSUMER_KEY != "" && CONSUMER_SECRET != "" && ACCESS_TOKEN != "" && ACCESS_TOKEN_SECRET != "" {
+		return
+	}
+
 	// test server
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
