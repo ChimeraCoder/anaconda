@@ -53,7 +53,7 @@ func init() {
 			if err != nil {
 				// either the file does not exist
 				// or something is seriously wrong with the testing environment
-				panic(err)
+				fmt.Fprintf(w, "error: %s", err)
 			}
 			defer f.Close()
 			io.Copy(w, f)
@@ -84,8 +84,7 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
 	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
-		panic(err)
+		t.Fatal(err)
 	}
 
 	// Unless something is seriously wrong, there should be at least two tweets
