@@ -196,6 +196,9 @@ func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) err
 
 	if oauthClient.Credentials.Token != "" {
 		filename := filepath.Join(append([]string{"json"}, strings.Split(strings.TrimPrefix(urlStr, c.baseUrl), "/")...)...)
+		if len(form) > 0 {
+			filename = filename + "?" + form.Encode()
+		}
 
 		dirs := strings.TrimSuffix(filename, filepath.Base(filename))
 		err := os.MkdirAll(dirs, 0755)
