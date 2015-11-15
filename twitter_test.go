@@ -34,12 +34,11 @@ func init() {
 		return
 	}
 
-	// test server
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 
 	parsed, _ := url.Parse(server.URL)
-	api.SetBaseUrl(parsed.String() + "/")
+	api.SetBaseUrl(parsed.String())
 
 	var endpointElems [][]string
 	filepath.Walk("json", func(path string, info os.FileInfo, err error) error {
@@ -52,10 +51,10 @@ func init() {
 	})
 
 	for _, elems := range endpointElems {
-		endpoint := path.Join(elems...)
+		endpoint := "/" + path.Join(elems...)
 		filename := filepath.Join(append([]string{"json"}, elems...)...)
 
-		mux.HandleFunc("/"+endpoint, func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
 			f, err := os.Open(filename)
 			if err != nil {
 				// either the file does not exist
