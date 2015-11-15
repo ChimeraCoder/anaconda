@@ -3,6 +3,7 @@ package anaconda_test
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -55,6 +56,22 @@ func init() {
 		filename := filepath.Join(append([]string{"json"}, elems...)...)
 
 		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
+			// if one filename is the prefix of another, the prefix will always match
+			// check if there is a more specific filename that matches this request
+
+			r.ParseForm()
+			specific := filename + "?" + r.Form.Encode()
+			_, err := os.Stat(specific)
+			if err == nil {
+				filename = specific
+
+			} else {
+				if err != nil && !os.IsNotExist(err) {
+					fmt.Fprintf(w, "error: %s", err)
+					return
+				}
+			}
+
 			f, err := os.Open(filename)
 			if err != nil {
 				// either the file does not exist
@@ -62,6 +79,19 @@ func init() {
 				fmt.Fprintf(w, "error: %s", err)
 			}
 			defer f.Close()
+
+			// TODO not a hack
+			if filename == "json/statuses/show.json?id=404409873170841600" {
+				bts, err := ioutil.ReadAll(f)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+
+				}
+				http.Error(w, string(bts), http.StatusNotFound)
+				return
+
+			}
+
 			io.Copy(w, f)
 		})
 	}
