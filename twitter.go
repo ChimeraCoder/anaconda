@@ -192,12 +192,25 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
-	filename := filepath.Join(append([]string{"json"}, strings.Split(strings.TrimPrefix(urlStr, c.baseUrl), "/")...)...)
-	f, err := os.Open(filename)
-	if err != nil {
-		return err
+	var f io.WriteCloser
+
+	if oauthClient.Credentials.Token != "" {
+		filename := filepath.Join(append([]string{"json"}, strings.Split(strings.TrimPrefix(urlStr, c.baseUrl), "/")...)...)
+
+		dirs := strings.TrimSuffix(filename, filepath.Base(filename))
+		err := os.MkdirAll(dirs, 0755)
+		if err != nil {
+			return err
+		}
+
+		f, err = os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_EXCL, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+	} else {
+		f = os.Stdout
 	}
-	defer f.Close()
 
 	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
