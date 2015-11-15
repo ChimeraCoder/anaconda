@@ -80,9 +80,9 @@ func Test_TwitterCredentials(t *testing.T) {
 func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	anaconda.SetConsumerKey(CONSUMER_KEY)
 	anaconda.SetConsumerSecret(CONSUMER_SECRET)
-	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	apiLocal := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
-	if api.Credentials == nil {
+	if apiLocal.Credentials == nil {
 		t.Fatalf("Twitter Api client has empty (nil) credentials")
 	}
 }
