@@ -101,7 +101,9 @@ func init() {
 // Without this, all following tests will fail
 func Test_TwitterCredentials(t *testing.T) {
 	if CONSUMER_KEY == "" || CONSUMER_SECRET == "" || ACCESS_TOKEN == "" || ACCESS_TOKEN_SECRET == "" {
-		t.Fatalf("Credentials are invalid: at least one is empty")
+		t.Logf("Using HTTP mock responses (API credentials are invalid: at least one is empty)")
+	} else {
+		t.Logf("Tests will query the live Twitter API (API credentials are all non-empty)")
 	}
 }
 
