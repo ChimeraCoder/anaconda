@@ -27,6 +27,6 @@ type photoSize struct {
 
 func (a TwitterApi) GetConfiguration(v url.Values) (conf Configuration, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/help/configuration.json", v, &conf, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/help/configuration.json", v, &conf, _GET, response_ch}
 	return conf, (<-response_ch).err
 }
