@@ -17,7 +17,7 @@ type Image struct {
 
 func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	v := url.Values{}
-	v.Set("media", base64String)
+	v.Set("media_data", base64String)
 
 	var mediaResponse Media
 
