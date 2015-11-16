@@ -10,7 +10,9 @@ import (
 
 func TestOEmbed(t *testing.T) {
 	// It is the only one that can be tested without auth
+	// However, it is still rate-limited
 	api := anaconda.NewTwitterApi("", "")
+	api.SetBaseUrl(testBase)
 	o, err := api.GetOEmbed(url.Values{"id": []string{"99530515043983360"}})
 	if err != nil {
 		t.Error(err)

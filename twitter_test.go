@@ -25,6 +25,8 @@ var ACCESS_TOKEN_SECRET = os.Getenv("ACCESS_TOKEN_SECRET")
 
 var api *anaconda.TwitterApi
 
+var testBase string
+
 func init() {
 	// Initialize api so it can be used even when invidual tests are run in isolation
 	anaconda.SetConsumerKey(CONSUMER_KEY)
@@ -39,7 +41,8 @@ func init() {
 	server := httptest.NewServer(mux)
 
 	parsed, _ := url.Parse(server.URL)
-	api.SetBaseUrl(parsed.String())
+	testBase = parsed.String()
+	api.SetBaseUrl(testBase)
 
 	var endpointElems [][]string
 	filepath.Walk("json", func(path string, info os.FileInfo, err error) error {
