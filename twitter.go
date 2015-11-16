@@ -46,6 +46,7 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+	"strings"
 
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
@@ -198,7 +199,17 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
-	if resp.StatusCode != 200 {
+	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
+	// so we need a special case when decoding the response
+	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") {
+		if resp.StatusCode == 204 {
+			// empty response, don't decode
+			return nil
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return newApiError(resp)
+		}
+	} else if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
