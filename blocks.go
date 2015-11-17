@@ -7,13 +7,13 @@ import (
 
 func (a TwitterApi) GetBlocksList(v url.Values) (c UserCursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/blocks/list.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/blocks/list.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetBlocksIds(v url.Values) (c Cursor, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/blocks/ids.json", v, &c, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/blocks/ids.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
 }
 
@@ -31,7 +31,7 @@ func (a TwitterApi) BlockUserId(id int64, v url.Values) (user User, err error) {
 
 func (a TwitterApi) Block(v url.Values) (user User, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/blocks/create.json", v, &user, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/blocks/create.json", v, &user, _POST, response_ch}
 	return user, (<-response_ch).err
 }
 
@@ -49,6 +49,6 @@ func (a TwitterApi) UnblockUserId(id int64, v url.Values) (user User, err error)
 
 func (a TwitterApi) Unblock(v url.Values) (user User, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/blocks/destroy.json", v, &user, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/blocks/destroy.json", v, &user, _POST, response_ch}
 	return user, (<-response_ch).err
 }

@@ -76,6 +76,10 @@ type TwitterApi struct {
 	// and for checking rate-limiting headers
 	// Default logger is silent
 	Log Logger
+
+	// used for testing
+	// defaults to BaseUrl
+	baseUrl string
 }
 
 type query struct {
@@ -110,6 +114,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		returnRateLimitError: false,
 		HttpClient:           http.DefaultClient,
 		Log:                  silentLogger{},
+		baseUrl:              BaseUrl,
 	}
 	go c.throttledQuery()
 	return c
@@ -152,6 +157,11 @@ func (c *TwitterApi) SetDelay(t time.Duration) {
 
 func (c *TwitterApi) GetDelay() time.Duration {
 	return c.bucket.GetRate()
+}
+
+// SetBaseUrl is experimental and may be removed in future releases.
+func (c *TwitterApi) SetBaseUrl(baseUrl string) {
+	c.baseUrl = baseUrl
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
