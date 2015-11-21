@@ -33,6 +33,21 @@ func (a TwitterApi) AddUserToList(screenName string, listID int64, v url.Values)
 	return addUserToListResponse.Users, (<-response_ch).err
 }
 
+// GetListMembers implements /lists/members.json
+func (a TwitterApi) GetListMembers(screenName string, listID int64, v url.Values) (users []User, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", screenName)
+
+	var getListMembersResponse GetListMembersResponse
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &getListMembersResponse, _GET, response_ch}
+	return getListMembersResponse.Users, (<-response_ch).err
+}
+
 // GetListsOwnedBy implements /lists/ownerships.json
 // screen_name, count, and cursor are all optional values
 func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, err error) {
@@ -59,3 +74,4 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 	a.queryQueue <- query{a.baseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
 }
+
