@@ -43,6 +43,36 @@ result, err := api.GetSearch("golang", v)
 
 (Remember that `url.Values` is equivalent to a `map[string][]string`, if you find that more convenient notation when specifying values). Otherwise, `nil` suffices.
 
+### Streaming
+
+Anaconda supports the Streaming APIs. You can use `PublicStream*` or `UserStream` API methods.
+A go loop is started an gives you an stream that sends `interface{}` objects through it's `chan` `C`
+Objects which you can cast into a tweet, event and more.
+
+
+````go
+v := url.Values{}
+s := api.UserStream(v)
+
+for t := range s.C {
+  switch v := t.(type) {
+  case anaconda.Tweet:
+    fmt.Printf("%-15s: %s\n", v.User.ScreenName, v.Text)
+  case anaconda.EventTweet:
+    switch v.Event.Event {
+    case "favorite":
+      sn := v.Source.ScreenName
+      tw := v.TargetObject.Text
+      fmt.Printf("Favorited by %-15s: %s\n", sn, tw)
+    case "unfavorite":
+      sn := v.Source.ScreenName
+      tw := v.TargetObject.Text
+      fmt.Printf("UnFavorited by %-15s: %s\n", sn, tw)
+    }
+  }
+}
+````
+
 
 
 Endpoints
