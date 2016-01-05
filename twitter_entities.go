@@ -17,7 +17,7 @@ type UserMentions struct {
 	Indices    []int  `json:"indices"`
 	ScreenName string `json:"screen_name"`
 	Id         int64  `json:"id"`
-	Id_str     string `json:"id_str"`
+	IdStr      string `json:"id_str"`
 }
 
 type Entities struct {
@@ -29,7 +29,7 @@ type Entities struct {
 
 type EntityMedia struct {
 	Id                int64      `json:"id"`
-	Id_str            string     `json:"id_str"`
+	IdStr             string     `json:"id_str"`
 	MediaUrl          string     `json:"media_url"`
 	MediaUrlHttps     string     `json:"media_url_https"`
 	Url               string     `json:"url"`

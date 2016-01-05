@@ -202,42 +202,42 @@ func Test_GetTweet(t *testing.T) {
 		Hashtags: []anaconda.Hashtags{
 			{
 				Indices: []int{86, 93},
-				Text: "golang",
+				Text:    "golang",
 			},
 		},
-		Urls: []anaconda.Urls{},
+		Urls:         []anaconda.Urls{},
 		UserMentions: []anaconda.UserMentions{},
 		Media: []anaconda.EntityMedia{anaconda.EntityMedia{
-			Id: 303777106628841472,
-			Id_str: "303777106628841472",
-			MediaUrl: "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+			Id:            303777106628841472,
+			IdStr:         "303777106628841472",
+			MediaUrl:      "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
 			MediaUrlHttps: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
-			Url: "http://t.co/eSq3ROwu",
-			DisplayUrl: "pic.twitter.com/eSq3ROwu",
-			ExpandedUrl: "http://twitter.com/golang/status/303777106620452864/photo/1",
+			Url:           "http://t.co/eSq3ROwu",
+			DisplayUrl:    "pic.twitter.com/eSq3ROwu",
+			ExpandedUrl:   "http://twitter.com/golang/status/303777106620452864/photo/1",
 			Sizes: anaconda.MediaSizes{
 				Medium: anaconda.MediaSize{
-					W: 600,
-					H: 450,
+					W:      600,
+					H:      450,
 					Resize: "fit",
 				},
 				Thumb: anaconda.MediaSize{
-					W: 150,
-					H: 150,
+					W:      150,
+					H:      150,
 					Resize: "crop",
 				},
 				Small: anaconda.MediaSize{
-					W: 340,
-					H: 255,
+					W:      340,
+					H:      255,
 					Resize: "fit",
 				},
 				Large: anaconda.MediaSize{
-					W: 1024,
+					W:      1024,
 					H:      768,
 					Resize: "fit",
 				},
 			},
-			Type: "photo",
+			Type:    "photo",
 			Indices: []int{94, 114},
 		}}}
 	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
