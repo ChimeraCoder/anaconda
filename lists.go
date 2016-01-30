@@ -59,3 +59,33 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 	a.queryQueue <- query{a.baseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
 }
+
+// Implement /lists/members by list_id
+func (a TwitterApi) GetListMembers(listID int64, v url.Values) (users UserCursor, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &users, _GET, response_ch}
+	return users, (<-response_ch).err
+}
+
+// Implement /lists/members by list_slug with (owner_id OR owner_screen_name)
+func (a TwitterApi) GetListMembersBySlug(listname string, owner_screen_name string, owner_id int64, v url.Values) (users UserCursor, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("slug", listname)
+	if owner_screen_name != "" {
+		v.Set("owner_screen_name", owner_screen_name)
+	}
+	if owner_id != 0 {
+		v.Set("owner_id", strconv.FormatInt(owner_id, 10))
+	}
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &users, _GET, response_ch}
+	return users, (<-response_ch).err
+}
