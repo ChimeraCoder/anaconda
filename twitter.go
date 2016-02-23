@@ -45,8 +45,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
@@ -231,6 +231,7 @@ func NewApiError(resp *http.Response) *ApiError {
 	return &ApiError{
 		StatusCode: resp.StatusCode,
 		Header:     resp.Header,
+		Method:     resp.Request.Method,
 		Body:       string(body),
 		URL:        resp.Request.URL,
 	}

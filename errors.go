@@ -33,6 +33,7 @@ const (
 type ApiError struct {
 	StatusCode int
 	Header     http.Header
+	Method     string
 	Body       string
 	Decoded    TwitterErrorResponse
 	URL        *url.URL
@@ -48,6 +49,7 @@ func newApiError(resp *http.Response) *ApiError {
 	return &ApiError{
 		StatusCode: resp.StatusCode,
 		Header:     resp.Header,
+		Method:     resp.Request.Method,
 		Body:       string(p),
 		Decoded:    twitterErrorResp,
 		URL:        resp.Request.URL,
@@ -56,16 +58,16 @@ func newApiError(resp *http.Response) *ApiError {
 
 // ApiError supports the error interface
 func (aerr ApiError) Error() string {
-	return fmt.Sprintf("Get %s returned status %d, %s", aerr.URL, aerr.StatusCode, aerr.Body)
+	return fmt.Sprintf("%s %s returned status %d, %s", aerr.Method, aerr.URL, aerr.StatusCode, aerr.Body)
 }
 
 // Check to see if an error is a Rate Limiting error. If so, find the next available window in the header.
 // Use like so:
 //
 //    if aerr, ok := err.(*ApiError); ok {
-//  	  if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
-//       	<-time.After(nextWindow.Sub(time.Now()))
-//  	  }
+//	  if isRateLimitError, nextWindow := aerr.RateLimitCheck(); isRateLimitError {
+//		<-time.After(nextWindow.Sub(time.Now()))
+//	  }
 //    }
 //
 func (aerr *ApiError) RateLimitCheck() (isRateLimitError bool, nextWindow time.Time) {
