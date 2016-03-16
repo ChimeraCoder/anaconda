@@ -52,7 +52,9 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 	if v == nil {
 		v = url.Values{}
 	}
-	v.Set("list_id", strconv.FormatInt(listID, 10))
+	if listID != 0 {
+		v.Set("list_id", strconv.FormatInt(listID, 10))
+	}
 	v.Set("include_rts", strconv.FormatBool(includeRTs))
 
 	response_ch := make(chan response)
