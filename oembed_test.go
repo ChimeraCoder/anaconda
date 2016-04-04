@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	anaconda "."
+	"github.com/ChimeraCoder/anaconda"
 )
 
 func TestOEmbed(t *testing.T) {
