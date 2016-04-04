@@ -19,6 +19,17 @@ const (
 
 // messages
 
+type DirectMessageDeletionNotice struct {
+	Id        int64  `json:"id"`
+	IdStr     string `json:"id_str"`
+	UserId    int64  `json:"user_id"`
+}
+type directMessageDeletionNotice struct {
+	Delete *struct {
+		DirectMessage *DirectMessageDeletionNotice `json:"direct_message"`
+	} `json:"delete"`
+}
+
 type StatusDeletionNotice struct {
 	Id        int64  `json:"id"`
 	IdStr     string `json:"id_str"`
@@ -171,6 +182,8 @@ func jsonToKnownType(j []byte) interface{} {
 	// TODO: DRY
 	if o := new(Tweet); jsonAsStruct(j, "/source", &o) {
 		return *o
+	} else if o := new(directMessageDeletionNotice); jsonAsStruct(j, "/delete/direct_message", &o) {
+		return *o.Delete.DirectMessage
 	} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", &o) {
 		return *o.Delete.Status
 	} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", &o) {
