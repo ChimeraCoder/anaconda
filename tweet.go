@@ -24,6 +24,7 @@ type Tweet struct {
 	Lang                 string                 `json:"lang"`
 	Place                Place                  `json:"place"`
 	PossiblySensitive    bool                   `json:"possibly_sensitive"`
+	QuotedStatus         *Tweet                 `json:"quoted_status"`
 	RetweetCount         int                    `json:"retweet_count"`
 	Retweeted            bool                   `json:"retweeted"`
 	RetweetedStatus      *Tweet                 `json:"retweeted_status"`
