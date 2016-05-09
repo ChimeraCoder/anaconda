@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	anaconda "."
+	"github.com/ChimeraCoder/anaconda"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
