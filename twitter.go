@@ -41,12 +41,13 @@ package anaconda
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
@@ -168,16 +169,30 @@ func (c *TwitterApi) SetBaseUrl(baseUrl string) {
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
 //Redirect the user to this URL.
 //This assumes that the consumer key has already been set (using SetConsumerKey).
-func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
-	tempCred, err := oauthClient.RequestTemporaryCredentials(http.DefaultClient, callback, nil)
+//client is optional but expected to be singular. It defaults to the http.DefaultClient.
+func AuthorizationURL(callback string, client ...*http.Client) (string, *oauth.Credentials, error) {
+	if len(client) == 0 {
+		client = []*http.Client{http.DefaultClient}
+	}
+	if len(client) > 1 {
+		return "", nil, errors.New("unexpected multiple clients")
+	}
+	tempCred, err := oauthClient.RequestTemporaryCredentials(client[0], callback, nil)
 	if err != nil {
 		return "", nil, err
 	}
 	return oauthClient.AuthorizationURL(tempCred, nil), tempCred, nil
 }
 
-func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
-	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
+// client is optional but expected to be singular if set. It defaults to http.DefaultClient.
+func GetCredentials(tempCred *oauth.Credentials, verifier string, client ...*http.Client) (*oauth.Credentials, url.Values, error) {
+	if len(client) == 0 {
+		client = []*http.Client{http.DefaultClient}
+	}
+	if len(client) > 1 {
+		return nil, nil, errors.New("unexpected multiple clients")
+	}
+	return oauthClient.RequestToken(client[0], tempCred, verifier)
 }
 
 func cleanValues(v url.Values) url.Values {
