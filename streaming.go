@@ -151,15 +151,15 @@ func (s *Stream) listen(response http.Response) {
 		defer response.Body.Close()
 	}
 
-	s.api.Log.Notice("Listenning to twitter socket")
-	defer s.api.Log.Notice("twitter socket closed, leaving loop")
+	s.api.Log.Info("Listening to twitter socket")
+	defer s.api.Log.Info("twitter socket closed, leaving loop")
 
 	scanner := bufio.NewScanner(response.Body)
 
 	for scanner.Scan() && s.run {
 		j := scanner.Bytes()
 		if len(j) == 0 {
-			s.api.Log.Debug("Empty bytes... Moving along")
+			continue
 		} else {
 			s.C <- jsonToKnownType(j)
 		}
@@ -224,24 +224,24 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 				// right away with EOF as of a rate limit
 				resp.StatusCode = 420
 			} else {
-				s.api.Log.Criticalf("Cannot request stream : %s", err)
+				s.api.Log.Err(fmt.Sprintf("Cannot request stream: %s", err))
 				return
 			}
 		}
-		s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
+		s.api.Log.Debug(fmt.Sprintf("Response status=%s code=%d", resp.Status, resp.StatusCode))
 
 		switch resp.StatusCode {
 		case 200, 304:
 			s.listen(*resp)
 			rlb.Reset()
 		case 420, 429, 503:
-			s.api.Log.Noticef("Twitter streaming: backing off as got : %+s", resp.Status)
+			s.api.Log.Info(fmt.Sprintf("Twitter streaming: backing off as got : %+s", resp.Status))
 			rlb.BackOff()
 		case 400, 401, 403, 404, 406, 410, 422, 500, 502, 504:
-			s.api.Log.Criticalf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status)
+			s.api.Log.Err(fmt.Sprintf("Twitter streaming: leaving after an irremediable error: %+s", resp.Status))
 			return
 		default:
-			s.api.Log.Notice("Received unknown status: %+s", resp.StatusCode)
+			s.api.Log.Info(fmt.Sprintf("Received unknown status: %+s", resp.StatusCode))
 		}
 
 	}
