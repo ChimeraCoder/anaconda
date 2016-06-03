@@ -222,7 +222,7 @@ func Test_GetTweet(t *testing.T) {
 		Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
 		Url:             "http://t.co/eSq3ROwu",
 		Display_url:     "pic.twitter.com/eSq3ROwu",
-		Expanded_url:    "http://twitter.com/golang/status/303777106620452864/photo/1",
+		Expanded_url:    "http://twitter.com/go_nuts/status/303777106620452864/photo/1",
 		Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600,
 			H:      450,
 			Resize: "fit"},
