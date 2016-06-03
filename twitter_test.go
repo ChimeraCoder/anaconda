@@ -84,7 +84,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if filename == "json/statuses/show.json?id=404409873170841600" {
+			if filename == "json/statuses/show.jsonwithid=404409873170841600" {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
