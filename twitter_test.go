@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -241,7 +242,34 @@ func Test_GetTweet(t *testing.T) {
 	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
 		t.Fatalf("Tweet entities differ")
 	}
+}
 
+func Test_GetQuotedTweet(t *testing.T) {
+	const tweetId = 738567564641599489
+	const tweetText = `Well, this has certainly come a long way! https://t.co/QomzRzwcti`
+	const quotedID = 284377451625340928
+	const quotedText = `Just created gojson - a simple tool for turning JSON data into Go structs! http://t.co/QM6k9AUV #golang`
+
+	tweet, err := api.GetTweet(tweetId, nil)
+	if err != nil {
+		t.Fatalf("GetTweet returned error: %s", err.Error())
+	}
+
+	if tweet.Text != tweetText {
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweet.Text)
+	}
+
+	if tweet.QuotedStatusID != quotedID {
+		t.Fatalf("Expected quoted status %d, received %d", quotedID, tweet.QuotedStatusID)
+	}
+
+	if tweet.QuotedStatusIdStr != strconv.Itoa(quotedID) {
+		t.Fatalf("Expected quoted status %d (as string), received %s", quotedID, tweet.QuotedStatusIdStr)
+	}
+
+	if tweet.QuotedStatus.Text != quotedText {
+		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+	}
 }
 
 // This assumes that the current user has at least two pages' worth of followers
