@@ -63,11 +63,14 @@ func init() {
 			// if one filename is the prefix of another, the prefix will always match
 			// check if there is a more specific filename that matches this request
 
+			// create local variable to avoid closing over `filename`
+			sourceFilename := filename
+
 			r.ParseForm()
-			specific := filename + "?" + r.Form.Encode()
+			specific := sourceFilename + "?" + r.Form.Encode()
 			_, err := os.Stat(specific)
 			if err == nil {
-				filename = specific
+				sourceFilename = specific
 
 			} else {
 				if err != nil && !os.IsNotExist(err) {
@@ -76,7 +79,7 @@ func init() {
 				}
 			}
 
-			f, err := os.Open(filename)
+			f, err := os.Open(sourceFilename)
 			if err != nil {
 				// either the file does not exist
 				// or something is seriously wrong with the testing environment
@@ -85,7 +88,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if filename == "json/statuses/show.json?id=404409873170841600" {
+			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
