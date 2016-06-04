@@ -68,5 +68,10 @@ func (a TwitterApi) baseUrlV1() string {
 	if a.baseUrl == BaseUrl {
 		return BaseUrlV1
 	}
+
+	if a.baseUrl == "" {
+		return BaseUrlV1
+	}
+
 	return a.baseUrl
 }
