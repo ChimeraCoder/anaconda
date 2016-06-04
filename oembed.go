@@ -1,9 +1,14 @@
 package anaconda
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type OEmbed struct {
@@ -22,12 +27,23 @@ type OEmbed struct {
 
 // No authorization on this endpoint. Its the only one.
 func (a TwitterApi) GetOEmbed(v url.Values) (o OEmbed, err error) {
+	var f io.Writer
+
+	filename := filepath.Join(append([]string{"json"}, strings.Split("/statuses/oembed.json", "/")...)...)
+	fl, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return o, err
+	}
+	defer fl.Close()
+	f = fl
+
 	resp, err := http.Get(a.baseUrlV1() + "/statuses/oembed.json?" + v.Encode())
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
 
+	resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, f))
 	err = decodeResponse(resp, &o)
 	return
 }
