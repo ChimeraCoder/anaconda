@@ -1,7 +1,7 @@
 Anaconda
 ====================
 
-[![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
+[![Build Status](https://api.travis-ci.org/ChimeraCoder/anaconda.png)](https://travis-ci.org/ChimeraCoder/anaconda) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
 
