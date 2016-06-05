@@ -11,11 +11,12 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	anaconda "."
+	"github.com/ChimeraCoder/anaconda"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -62,11 +63,14 @@ func init() {
 			// if one filename is the prefix of another, the prefix will always match
 			// check if there is a more specific filename that matches this request
 
+			// create local variable to avoid closing over `filename`
+			sourceFilename := filename
+
 			r.ParseForm()
-			specific := filename + "?" + r.Form.Encode()
+			specific := sourceFilename + "?" + r.Form.Encode()
 			_, err := os.Stat(specific)
 			if err == nil {
-				filename = specific
+				sourceFilename = specific
 
 			} else {
 				if err != nil && !os.IsNotExist(err) {
@@ -75,7 +79,7 @@ func init() {
 				}
 			}
 
-			f, err := os.Open(filename)
+			f, err := os.Open(sourceFilename)
 			if err != nil {
 				// either the file does not exist
 				// or something is seriously wrong with the testing environment
@@ -84,7 +88,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if filename == "json/statuses/show.json?id=404409873170841600" {
+			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -222,7 +226,7 @@ func Test_GetTweet(t *testing.T) {
 		Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
 		Url:             "http://t.co/eSq3ROwu",
 		Display_url:     "pic.twitter.com/eSq3ROwu",
-		Expanded_url:    "http://twitter.com/golang/status/303777106620452864/photo/1",
+		Expanded_url:    "http://twitter.com/go_nuts/status/303777106620452864/photo/1",
 		Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600,
 			H:      450,
 			Resize: "fit"},
@@ -241,7 +245,34 @@ func Test_GetTweet(t *testing.T) {
 	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
 		t.Fatalf("Tweet entities differ")
 	}
+}
 
+func Test_GetQuotedTweet(t *testing.T) {
+	const tweetId = 738567564641599489
+	const tweetText = `Well, this has certainly come a long way! https://t.co/QomzRzwcti`
+	const quotedID = 284377451625340928
+	const quotedText = `Just created gojson - a simple tool for turning JSON data into Go structs! http://t.co/QM6k9AUV #golang`
+
+	tweet, err := api.GetTweet(tweetId, nil)
+	if err != nil {
+		t.Fatalf("GetTweet returned error: %s", err.Error())
+	}
+
+	if tweet.Text != tweetText {
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweet.Text)
+	}
+
+	if tweet.QuotedStatusID != quotedID {
+		t.Fatalf("Expected quoted status %d, received %d", quotedID, tweet.QuotedStatusID)
+	}
+
+	if tweet.QuotedStatusIdStr != strconv.Itoa(quotedID) {
+		t.Fatalf("Expected quoted status %d (as string), received %s", quotedID, tweet.QuotedStatusIdStr)
+	}
+
+	if tweet.QuotedStatus.Text != quotedText {
+		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+	}
 }
 
 // This assumes that the current user has at least two pages' worth of followers

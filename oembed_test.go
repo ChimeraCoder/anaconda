@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	anaconda "."
+	"github.com/ChimeraCoder/anaconda"
 )
 
 func TestOEmbed(t *testing.T) {
@@ -19,13 +19,13 @@ func TestOEmbed(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(o, expectedOEmbed) {
-		t.Errorf("Actual OEmbed differs expected:\n%+v\n Got: \n%+v\n", expectedOEmbed, o)
+		t.Errorf("Actual OEmbed differs expected:\n%#v\n Got: \n%#v\n", expectedOEmbed, o)
 	}
 }
 
 var expectedOEmbed anaconda.OEmbed = anaconda.OEmbed{
 	Cache_age:     "3153600000",
-	Url:           "https://twitter.com/twitter/statuses/99530515043983360",
+	Url:           "https://twitter.com/twitter/status/99530515043983360",
 	Height:        0,
 	Provider_url:  "https://twitter.com",
 	Provider_name: "Twitter",

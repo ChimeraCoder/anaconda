@@ -19,8 +19,8 @@ type Image struct {
 }
 
 type ChunkedMedia struct {
-	MediaID       int64  `json:"media_id"`
-	MediaIDString string `json:"media_id_string"`
+	MediaID          int64  `json:"media_id"`
+	MediaIDString    string `json:"media_id_string"`
 	ExpiresAfterSecs int    `json:"expires_after_secs"`
 }
 
@@ -29,11 +29,11 @@ type Video struct {
 }
 
 type VideoMedia struct {
-	MediaID       int64  `json:"media_id"`
-	MediaIDString string `json:"media_id_string"`
-	Size          int    `json:"size"`
+	MediaID          int64  `json:"media_id"`
+	MediaIDString    string `json:"media_id_string"`
+	Size             int    `json:"size"`
 	ExpiresAfterSecs int    `json:"expires_after_secs"`
-	Video Video `json:"video"`
+	Video            Video  `json:"video"`
 }
 
 func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
@@ -60,9 +60,9 @@ func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMed
 	return mediaResponse, (<-response_ch).err
 }
 
-func (a TwitterApi) UploadVideoAppend(mediaIdString string, 
+func (a TwitterApi) UploadVideoAppend(mediaIdString string,
 	segmentIndex int, base64String string) error {
-	
+
 	v := url.Values{}
 	v.Set("command", "APPEND")
 	v.Set("media_id", mediaIdString)
