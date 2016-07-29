@@ -31,6 +31,19 @@ type statusDeletionNotice struct {
 	} `json:"delete"`
 }
 
+type DirectMessageDeletionNotice struct {
+	Id        int64  `json:"id"`
+	IdStr     string `json:"id_str"`
+	UserId    int64  `json:"user_id"`
+	UserIdStr string `json:"user_id_str"`
+}
+
+type directMessageDeletionNotice struct {
+	Delete *struct {
+		DirectMessage *DirectMessageDeletionNotice `json:"direct_message"`
+	} `json:"delete"`
+}
+
 type LocationDeletionNotice struct {
 	UserId          int64  `json:"user_id"`
 	UserIdStr       string `json:"user_id_str"`
@@ -170,8 +183,10 @@ func jsonToKnownType(j []byte) interface{} {
 	// TODO: DRY
 	if o := new(Tweet); jsonAsStruct(j, "/source", &o) {
 		return *o
-	} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete", &o) {
+	} else if o := new(statusDeletionNotice); jsonAsStruct(j, "/delete/status", &o) {
 		return *o.Delete.Status
+	} else if o := new(directMessageDeletionNotice); jsonAsStruct(j, "/delete/direct_message", &o) {
+		return *o.Delete.DirectMessage
 	} else if o := new(locationDeletionNotice); jsonAsStruct(j, "/scrub_geo", &o) {
 		return *o.ScrubGeo
 	} else if o := new(limitNotice); jsonAsStruct(j, "/limit", &o) {
