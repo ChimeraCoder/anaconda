@@ -29,6 +29,16 @@ func (a TwitterApi) GetUsersLookupByIds(ids []int64, v url.Values) (u []User, er
 	return u, (<-response_ch).err
 }
 
+func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, err error) {
+	v = cleanValues(v)
+	v.Set("q", searchTerm)
+	// Set other values before calling this method:
+	// page, count, include_entities
+  response_ch := make(chan response)
+  a.queryQueue <- query{"http://api.twitter.com/1.1/users/search.json", v, &u, _GET, response_ch}
+	return u, (<-response_ch).err
+}
+
 func (a TwitterApi) GetUsersShow(username string, v url.Values) (u User, err error) {
 	v = cleanValues(v)
 	v.Set("screen_name", username)
