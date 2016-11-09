@@ -45,6 +45,7 @@ type EntityMedia struct {
 	Type                 string
 	Indices              []int
 	VideoInfo            VideoInfo `json:"video_info"`
+	ExtAltText           string    `json:"ext_alt_text"`
 }
 
 type MediaSizes struct {
