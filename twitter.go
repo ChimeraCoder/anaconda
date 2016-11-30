@@ -314,9 +314,9 @@ func (c *TwitterApi) throttledQuery() {
 
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
-					go func() {
+					go func(q query) {
 						c.queryQueue <- q
-					}()
+					}(q)
 
 					delay := nextWindow.Sub(time.Now())
 					<-time.After(delay)
