@@ -11,13 +11,28 @@ func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error) {
 	v.Set("id", strconv.FormatInt(id, 10))
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/statuses/show.json", v, &tweet, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/statuses/show.json", v, &tweet, _GET, response_ch}
+	return tweet, (<-response_ch).err
+}
+
+func (a TwitterApi) GetTweetsLookupByIds(ids []int64, v url.Values) (tweet []Tweet, err error) {
+	var pids string
+	for w, i := range ids {
+		pids += strconv.FormatInt(i, 10)
+		if w != len(ids)-1 {
+			pids += ","
+		}
+	}
+	v = cleanValues(v)
+	v.Set("id", pids)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/statuses/lookup.json", v, &tweet, _GET, response_ch}
 	return tweet, (<-response_ch).err
 }
 
 func (a TwitterApi) GetRetweets(id int64, v url.Values) (tweets []Tweet, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/statuses/retweets/%d.json", id), v, &tweets, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/statuses/retweets/%d.json", id), v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
 }
 
@@ -26,7 +41,7 @@ func (a TwitterApi) PostTweet(status string, v url.Values) (tweet Tweet, err err
 	v = cleanValues(v)
 	v.Set("status", status)
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/statuses/update.json", v, &tweet, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/statuses/update.json", v, &tweet, _POST, response_ch}
 	return tweet, (<-response_ch).err
 }
 
@@ -38,7 +53,7 @@ func (a TwitterApi) DeleteTweet(id int64, trimUser bool) (tweet Tweet, err error
 		v.Set("trim_user", "t")
 	}
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/statuses/destroy/%d.json", id), v, &tweet, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/statuses/destroy/%d.json", id), v, &tweet, _POST, response_ch}
 	return tweet, (<-response_ch).err
 }
 
@@ -50,7 +65,7 @@ func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 		v.Set("trim_user", "t")
 	}
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/statuses/retweet/%d.json", id), v, &rt, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/statuses/retweet/%d.json", id), v, &rt, _POST, response_ch}
 	return rt, (<-response_ch).err
 }
 
@@ -60,6 +75,17 @@ func (a TwitterApi) Favorite(id int64) (rt Tweet, err error) {
 	v := url.Values{}
 	v.Set("id", fmt.Sprint(id))
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + fmt.Sprintf("/favorites/create.json"), v, &rt, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/favorites/create.json"), v, &rt, _POST, response_ch}
+	return rt, (<-response_ch).err
+}
+
+// Un-favorites the status specified in the ID parameter as the authenticating user.
+// Returns the un-favorited status in the requested format when successful.
+// https://dev.twitter.com/docs/api/1.1/post/favorites/destroy
+func (a TwitterApi) Unfavorite(id int64) (rt Tweet, err error) {
+	v := url.Values{}
+	v.Set("id", fmt.Sprint(id))
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/favorites/destroy.json"), v, &rt, _POST, response_ch}
 	return rt, (<-response_ch).err
 }

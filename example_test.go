@@ -2,8 +2,9 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
 	"time"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 // Initialize an client library for a given user.
@@ -24,7 +25,7 @@ func ExampleTwitterApi_GetSearch() {
 	if err != nil {
 		panic(err)
 	}
-	for _, tweet := range search_result {
+	for _, tweet := range search_result.Statuses {
 		fmt.Print(tweet.Text)
 	}
 }

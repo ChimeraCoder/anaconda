@@ -2,11 +2,21 @@ package anaconda_test
 
 import (
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
+	"path"
+	"path/filepath"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -16,18 +26,91 @@ var ACCESS_TOKEN_SECRET = os.Getenv("ACCESS_TOKEN_SECRET")
 
 var api *anaconda.TwitterApi
 
+var testBase string
+
 func init() {
 	// Initialize api so it can be used even when invidual tests are run in isolation
 	anaconda.SetConsumerKey(CONSUMER_KEY)
 	anaconda.SetConsumerSecret(CONSUMER_SECRET)
 	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
+	if CONSUMER_KEY != "" && CONSUMER_SECRET != "" && ACCESS_TOKEN != "" && ACCESS_TOKEN_SECRET != "" {
+		return
+	}
+
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	parsed, _ := url.Parse(server.URL)
+	testBase = parsed.String()
+	api.SetBaseUrl(testBase)
+
+	var endpointElems [][]string
+	filepath.Walk("json", func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			elems := strings.Split(path, string(os.PathSeparator))[1:]
+			endpointElems = append(endpointElems, elems)
+		}
+
+		return nil
+	})
+
+	for _, elems := range endpointElems {
+		endpoint := "/" + path.Join(elems...)
+		filename := filepath.Join(append([]string{"json"}, elems...)...)
+
+		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
+			// if one filename is the prefix of another, the prefix will always match
+			// check if there is a more specific filename that matches this request
+
+			// create local variable to avoid closing over `filename`
+			sourceFilename := filename
+
+			r.ParseForm()
+			specific := sourceFilename + "?" + r.Form.Encode()
+			_, err := os.Stat(specific)
+			if err == nil {
+				sourceFilename = specific
+
+			} else {
+				if err != nil && !os.IsNotExist(err) {
+					fmt.Fprintf(w, "error: %s", err)
+					return
+				}
+			}
+
+			f, err := os.Open(sourceFilename)
+			if err != nil {
+				// either the file does not exist
+				// or something is seriously wrong with the testing environment
+				fmt.Fprintf(w, "error: %s", err)
+			}
+			defer f.Close()
+
+			// TODO not a hack
+			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
+				bts, err := ioutil.ReadAll(f)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+
+				}
+				http.Error(w, string(bts), http.StatusNotFound)
+				return
+
+			}
+
+			io.Copy(w, f)
+		})
+	}
 }
 
 // Test_TwitterCredentials tests that non-empty Twitter credentials are set
 // Without this, all following tests will fail
 func Test_TwitterCredentials(t *testing.T) {
 	if CONSUMER_KEY == "" || CONSUMER_SECRET == "" || ACCESS_TOKEN == "" || ACCESS_TOKEN_SECRET == "" {
-		t.Errorf("Credentials are invalid: at least one is empty")
+		t.Logf("Using HTTP mock responses (API credentials are invalid: at least one is empty)")
+	} else {
+		t.Logf("Tests will query the live Twitter API (API credentials are all non-empty)")
 	}
 }
 
@@ -35,10 +118,10 @@ func Test_TwitterCredentials(t *testing.T) {
 func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	anaconda.SetConsumerKey(CONSUMER_KEY)
 	anaconda.SetConsumerSecret(CONSUMER_SECRET)
-	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	apiLocal := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
-	if api.Credentials == nil {
-		t.Errorf("Twitter Api client has empty (nil) credentials")
+	if apiLocal.Credentials == nil {
+		t.Fatalf("Twitter Api client has empty (nil) credentials")
 	}
 }
 
@@ -46,24 +129,23 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
 	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
-		panic(err)
+		t.Fatal(err)
 	}
 
 	// Unless something is seriously wrong, there should be at least two tweets
-	if len(search_result) < 2 {
-		t.Errorf("Expected 2 or more tweets, and found %d", len(search_result))
+	if len(search_result.Statuses) < 2 {
+		t.Fatalf("Expected 2 or more tweets, and found %d", len(search_result.Statuses))
 	}
 
 	// Check that at least one tweet is non-empty
-	for _, tweet := range search_result {
+	for _, tweet := range search_result.Statuses {
 		if tweet.Text != "" {
 			return
 		}
 		fmt.Print(tweet.Text)
 	}
 
-	t.Errorf("All %d tweets had empty text", len(search_result))
+	t.Fatalf("All %d tweets had empty text", len(search_result.Statuses))
 }
 
 // Test that a valid user can be fetched
@@ -73,19 +155,35 @@ func Test_GetUser(t *testing.T) {
 
 	users, err := api.GetUsersLookup(username, nil)
 	if err != nil {
-		t.Errorf("GetUsersLookup returned error: %s", err.Error())
+		t.Fatalf("GetUsersLookup returned error: %s", err.Error())
 	}
 
 	if len(users) != 1 {
-		t.Errorf("Expected one user and received %d", len(users))
+		t.Fatalf("Expected one user and received %d", len(users))
 	}
 
 	// If all attributes are equal to the zero value for that type,
 	// then the original value was not valid
 	if reflect.DeepEqual(users[0], anaconda.User{}) {
-		t.Errorf("Received %#v", users[0])
+		t.Fatalf("Received %#v", users[0])
+	}
+}
+
+func Test_GetFavorites(t *testing.T) {
+	v := url.Values{}
+	v.Set("screen_name", "chimeracoder")
+	favorites, err := api.GetFavorites(v)
+	if err != nil {
+		t.Fatalf("GetFavorites returned error: %s", err.Error())
 	}
 
+	if len(favorites) == 0 {
+		t.Fatalf("GetFavorites returned no favorites")
+	}
+
+	if reflect.DeepEqual(favorites[0], anaconda.Tweet{}) {
+		t.Fatalf("GetFavorites returned %d favorites and the first one was empty", len(favorites))
+	}
 }
 
 // Test that a valid tweet can be fetched properly
@@ -96,11 +194,11 @@ func Test_GetTweet(t *testing.T) {
 
 	tweet, err := api.GetTweet(tweetId, nil)
 	if err != nil {
-		t.Errorf("GetTweet returned error: %s", err.Error())
+		t.Fatalf("GetTweet returned error: %s", err.Error())
 	}
 
 	if tweet.Text != tweetText {
-		t.Errorf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
 	}
 
 	// Check the entities
@@ -121,33 +219,60 @@ func Test_GetTweet(t *testing.T) {
 		Screen_name string
 		Id          int64
 		Id_str      string
-	}{}, Media: []struct {
-		Id              int64
-		Id_str          string
-		Media_url       string
-		Media_url_https string
-		Url             string
-		Display_url     string
-		Expanded_url    string
-		Sizes           anaconda.MediaSizes
-		Type            string
-		Indices         []int
-	}{struct {
-		Id              int64
-		Id_str          string
-		Media_url       string
-		Media_url_https string
-		Url             string
-		Display_url     string
-		Expanded_url    string
-		Sizes           anaconda.MediaSizes
-		Type            string
-		Indices         []int
-	}{Id: 303777106628841472, Id_str: "303777106628841472", Media_url: "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg", Url: "http://t.co/eSq3ROwu", Display_url: "pic.twitter.com/eSq3ROwu", Expanded_url: "http://twitter.com/golang/status/303777106620452864/photo/1", Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600, H: 450, Resize: "fit"}, Thumb: anaconda.MediaSize{W: 150, H: 150, Resize: "crop"}, Small: anaconda.MediaSize{W: 340, H: 255, Resize: "fit"}, Large: anaconda.MediaSize{W: 1024, H: 768, Resize: "fit"}}, Type: "photo", Indices: []int{94, 114}}}}
+	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{
+		Id:              303777106628841472,
+		Id_str:          "303777106628841472",
+		Media_url:       "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		Url:             "http://t.co/eSq3ROwu",
+		Display_url:     "pic.twitter.com/eSq3ROwu",
+		Expanded_url:    "http://twitter.com/go_nuts/status/303777106620452864/photo/1",
+		Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600,
+			H:      450,
+			Resize: "fit"},
+			Thumb: anaconda.MediaSize{W: 150,
+				H:      150,
+				Resize: "crop"},
+			Small: anaconda.MediaSize{W: 340,
+				H:      255,
+				Resize: "fit"},
+			Large: anaconda.MediaSize{W: 1024,
+				H:      768,
+				Resize: "fit"}},
+		Type: "photo",
+		Indices: []int{94,
+			114}}}}
 	if !reflect.DeepEqual(tweet.Entities, expectedEntities) {
-		t.Errorf("Tweet entities differ")
+		t.Fatalf("Tweet entities differ")
+	}
+}
+
+func Test_GetQuotedTweet(t *testing.T) {
+	const tweetId = 738567564641599489
+	const tweetText = `Well, this has certainly come a long way! https://t.co/QomzRzwcti`
+	const quotedID = 284377451625340928
+	const quotedText = `Just created gojson - a simple tool for turning JSON data into Go structs! http://t.co/QM6k9AUV #golang`
+
+	tweet, err := api.GetTweet(tweetId, nil)
+	if err != nil {
+		t.Fatalf("GetTweet returned error: %s", err.Error())
 	}
 
+	if tweet.Text != tweetText {
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweet.Text)
+	}
+
+	if tweet.QuotedStatusID != quotedID {
+		t.Fatalf("Expected quoted status %d, received %d", quotedID, tweet.QuotedStatusID)
+	}
+
+	if tweet.QuotedStatusIdStr != strconv.Itoa(quotedID) {
+		t.Fatalf("Expected quoted status %d (as string), received %s", quotedID, tweet.QuotedStatusIdStr)
+	}
+
+	if tweet.QuotedStatus.Text != quotedText {
+		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+	}
 }
 
 // This assumes that the current user has at least two pages' worth of followers
@@ -161,11 +286,53 @@ func Test_GetFollowersListAll(t *testing.T) {
 		}
 
 		if page.Error != nil {
-			t.Errorf("Receved error from GetFollowersListAll: %s", page.Error)
+			t.Fatalf("Receved error from GetFollowersListAll: %s", page.Error)
 		}
 
 		if page.Followers == nil || len(page.Followers) == 0 {
-			t.Errorf("Received invalid value for page %d of followers: %v", i, page.Followers)
+			t.Fatalf("Received invalid value for page %d of followers: %v", i, page.Followers)
+		}
+		i++
+	}
+}
+
+// This assumes that the current user has at least two pages' worth of followers
+func Test_GetFollowersIdsAll(t *testing.T) {
+	result := api.GetFollowersIdsAll(nil)
+	i := 0
+
+	for page := range result {
+		if i == 2 {
+			return
+		}
+
+		if page.Error != nil {
+			t.Fatalf("Receved error from GetFollowersIdsAll: %s", page.Error)
+		}
+
+		if page.Ids == nil || len(page.Ids) == 0 {
+			t.Fatalf("Received invalid value for page %d of followers: %v", i, page.Ids)
+		}
+		i++
+	}
+}
+
+// This assumes that the current user has at least two pages' worth of friends
+func Test_GetFriendsIdsAll(t *testing.T) {
+	result := api.GetFriendsIdsAll(nil)
+	i := 0
+
+	for page := range result {
+		if i == 2 {
+			return
+		}
+
+		if page.Error != nil {
+			t.Fatalf("Receved error from GetFriendsIdsAll : %s", page.Error)
+		}
+
+		if page.Ids == nil || len(page.Ids) == 0 {
+			t.Fatalf("Received invalid value for page %d of friends : %v", i, page.Ids)
 		}
 		i++
 	}
@@ -179,13 +346,13 @@ func Test_TwitterApi_SetDelay(t *testing.T) {
 
 	delay := api.GetDelay()
 	if delay != OLD_DELAY {
-		t.Errorf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
+		t.Fatalf("Expected initial delay to be the default delay (%s)", anaconda.DEFAULT_DELAY.String())
 	}
 
 	api.SetDelay(NEW_DELAY)
 
 	if newDelay := api.GetDelay(); newDelay != NEW_DELAY {
-		t.Errorf("Attempted to set delay to %s, but delay is now %s (original delay: %s)", NEW_DELAY, newDelay, delay)
+		t.Fatalf("Attempted to set delay to %s, but delay is now %s (original delay: %s)", NEW_DELAY, newDelay, delay)
 	}
 }
 
@@ -196,26 +363,26 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 
 	tweet, err := api.GetTweet(DELETED_TWEET_ID, nil)
 	if err == nil {
-		t.Errorf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
+		t.Fatalf("Expected an error when fetching tweet with id %d but got none - tweet object is %+v", DELETED_TWEET_ID, tweet)
 	}
 
 	apiErr, ok := err.(*anaconda.ApiError)
 	if !ok {
-		t.Errorf("Expected an *anaconda.ApiError, and received error message %s, (%+v)", err.Error(), err)
+		t.Fatalf("Expected an *anaconda.ApiError, and received error message %s, (%+v)", err.Error(), err)
 	}
 
 	terr, ok := apiErr.Decoded.First().(anaconda.TwitterError)
 
 	if !ok {
-		t.Errorf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
+		t.Fatalf("TwitterErrorResponse.First() should return value of type TwitterError, not %s", reflect.TypeOf(apiErr.Decoded.First()))
 	}
 
-	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist {
+	if code := terr.Code; code != anaconda.TwitterErrorDoesNotExist && code != anaconda.TwitterErrorDoesNotExist2 {
 		if code == anaconda.TwitterErrorRateLimitExceeded {
-			t.Errorf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
+			t.Fatalf("Rate limit exceeded during testing - received error code %d instead of %d", anaconda.TwitterErrorRateLimitExceeded, anaconda.TwitterErrorDoesNotExist)
 		} else {
 
-			t.Errorf("Expected Twitter to return error code %d, and instead received error code %d", anaconda.TwitterErrorDoesNotExist, code)
+			t.Fatalf("Expected Twitter to return error code %d, and instead received error code %d", anaconda.TwitterErrorDoesNotExist, code)
 		}
 	}
 }
@@ -231,18 +398,30 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 	now := time.Now()
 	_, err := api.GetSearch("golang", nil)
 	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
+		t.Fatalf("GetSearch yielded error %s", err.Error())
 	}
 	_, err = api.GetSearch("anaconda", nil)
 	if err != nil {
-		t.Errorf("GetSearch yielded error %s", err.Error())
+		t.Fatalf("GetSearch yielded error %s", err.Error())
 	}
 	after := time.Now()
 
 	if difference := after.Sub(now); difference < MIN_DELAY {
-		t.Errorf("Expected delay of at least %d. Actual delay: %s", MIN_DELAY.String(), difference.String())
+		t.Fatalf("Expected delay of at least %s. Actual delay: %s", MIN_DELAY.String(), difference.String())
 	}
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
+}
+
+func Test_DMScreenName(t *testing.T) {
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }

@@ -1,7 +1,7 @@
 Anaconda
 ====================
 
-[![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
+[![Build Status](https://api.travis-ci.org/ChimeraCoder/anaconda.png)](https://travis-ci.org/ChimeraCoder/anaconda) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
 
@@ -28,7 +28,7 @@ Queries are conducted using a pointer to an authenticated `TwitterApi` struct. I
 
 ````go
 searchResult, _ := api.GetSearch("golang", nil)
-for _ , tweet := range searchResult {
+for _ , tweet := range searchResult.Statuses {
     fmt.Println(tweet.Text)
 }   
 ````
@@ -92,6 +92,19 @@ To turn off automatic throttling, set the delay to `0`:
     api.SetDelay(0 * time.Second)
 ````
 
+###Query Queue Persistence
+
+If your code creates a NewTwitterApi in a regularly called function, you'll need to call `.Close()` on the API struct to clear the queryQueue and allow the goroutine to exit. Otherwise you could see goroutine and therefor heap memory leaks in long-running applications.
+
+### Google App Engine
+
+Since Google App Engine doesn't make the standard `http.Transport` available, it's necessary to tell Anaconda to use a different client context.
+
+````go
+	api = anaconda.NewTwitterApi("", "")
+	c := appengine.NewContext(r)
+	api.HttpClient.Transport = &urlfetch.Transport{Context: c}
+````
 
 
 License

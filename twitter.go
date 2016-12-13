@@ -18,7 +18,7 @@
 //Executing queries on an authenticated TwitterApi struct is simple.
 //
 //  searchResult, _ := api.GetSearch("golang", nil)
-//  for _ , tweet := range searchResult {
+//  for _ , tweet := range searchResult.Statuses {
 //      fmt.Print(tweet.Text)
 //  }
 //
@@ -42,19 +42,22 @@ package anaconda
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ChimeraCoder/tokenbucket"
-	"github.com/garyburd/go-oauth/oauth"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
+
+	"github.com/ChimeraCoder/tokenbucket"
+	"github.com/garyburd/go-oauth/oauth"
 )
 
 const (
-	_GET      = iota
-	_POST     = iota
-	BaseUrlV1 = "https://api.twitter.com/1"
-	BaseUrl   = "https://api.twitter.com/1.1"
+	_GET          = iota
+	_POST         = iota
+	BaseUrlV1     = "https://api.twitter.com/1"
+	BaseUrl       = "https://api.twitter.com/1.1"
+	UploadBaseUrl = "https://upload.twitter.com/1.1"
 )
 
 var oauthClient = oauth.Client{
@@ -69,6 +72,15 @@ type TwitterApi struct {
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
 	HttpClient           *http.Client
+
+	// Currently used only for the streaming API
+	// and for checking rate-limiting headers
+	// Default logger is silent
+	Log Logger
+
+	// used for testing
+	// defaults to BaseUrl
+	baseUrl string
 }
 
 type query struct {
@@ -93,7 +105,18 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
-	c := &TwitterApi{&oauth.Credentials{Token: access_token, Secret: access_token_secret}, queue, nil, false, http.DefaultClient}
+	c := &TwitterApi{
+		Credentials: &oauth.Credentials{
+			Token:  access_token,
+			Secret: access_token_secret,
+		},
+		queryQueue:           queue,
+		bucket:               nil,
+		returnRateLimitError: false,
+		HttpClient:           http.DefaultClient,
+		Log:                  silentLogger{},
+		baseUrl:              BaseUrl,
+	}
 	go c.throttledQuery()
 	return c
 }
@@ -135,6 +158,11 @@ func (c *TwitterApi) SetDelay(t time.Duration) {
 
 func (c *TwitterApi) GetDelay() time.Duration {
 	return c.bucket.GetRate()
+}
+
+// SetBaseUrl is experimental and may be removed in future releases.
+func (c *TwitterApi) SetBaseUrl(baseUrl string) {
+	c.baseUrl = baseUrl
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -181,7 +209,17 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
-	if resp.StatusCode != 200 {
+	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
+	// so we need a special case when decoding the response
+	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") {
+		if resp.StatusCode == 204 {
+			// empty response, don't decode
+			return nil
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return newApiError(resp)
+		}
+	} else if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
@@ -233,6 +271,8 @@ func (c *TwitterApi) throttledQuery() {
 		if err != nil {
 			if apiErr, ok := err.(*ApiError); ok {
 				if isRateLimitError, nextWindow := apiErr.RateLimitCheck(); isRateLimitError && !c.returnRateLimitError {
+					c.Log.Info(apiErr.Error())
+
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
 					go func() {

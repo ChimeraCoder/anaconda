@@ -25,6 +25,9 @@ const (
 	TwitterErrorStatusIsADuplicate      = 187
 	TwitterErrorBadAuthenticationData   = 215
 	TwitterErrorUserMustVerifyLogin     = 231
+
+	// Undocumented by Twitter, but may be returned instead of 34
+	TwitterErrorDoesNotExist2 = 144
 )
 
 type ApiError struct {
