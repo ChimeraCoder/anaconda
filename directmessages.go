@@ -13,7 +13,7 @@ func (a TwitterApi) GetDirectMessages(v url.Values) (messages []DirectMessage, e
 
 func (a TwitterApi) GetDirectMessagesSent(v url.Values) (messages []DirectMessage, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/direct_messages_sent.json", v, &messages, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/direct_messages/sent.json", v, &messages, _GET, response_ch}
 	return messages, (<-response_ch).err
 }
 
