@@ -5,7 +5,7 @@ import "net/url"
 type GeoReverseSearchResult struct {
 	Result struct {
 		Places []struct {
-			ID              string `json:"id"`
+			Id              string `json:"id"`
 			URL             string `json:"url"`
 			PlaceType       string `json:"place_type"`
 			Name            string `json:"name"`
