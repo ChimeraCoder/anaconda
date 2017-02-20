@@ -1,7 +1,6 @@
 package anaconda
 
 import "net/url"
-import "fmt"
 
 type RateLimitSearchResult struct {
 	RateLimitContext struct {
