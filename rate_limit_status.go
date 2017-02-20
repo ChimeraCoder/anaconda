@@ -29,6 +29,13 @@ type RateLimitSearchResult struct {
 				Reset     int `json:"reset"`
 			} `json:"/geo/search"`
 		} `json:"geo"`
+		Search struct {
+			Tweets struct {
+				Limit     int `json:"limit"`
+				Remaining int `json:"remaining"`
+				Reset     int `json:"reset"`
+			} `json:"/search/tweets"`
+		} `json:"search"`
 	} `json:"resources"`
 }
 
