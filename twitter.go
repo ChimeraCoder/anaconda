@@ -50,6 +50,8 @@ import (
 
 	"github.com/ChimeraCoder/tokenbucket"
 	"github.com/garyburd/go-oauth/oauth"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 const (
@@ -114,6 +116,32 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		bucket:               nil,
 		returnRateLimitError: false,
 		HttpClient:           http.DefaultClient,
+		Log:                  silentLogger{},
+		baseUrl:              BaseUrl,
+	}
+	go c.throttledQuery()
+	return c
+}
+
+//NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
+//The TwitterApi struct can be used for accessing any of the endpoints available.
+func NewTwitterAppApi(consumer_key string, consumer_secret string) *TwitterApi {
+	//TODO figure out how much to buffer this channel
+	//A non-buffered channel will cause blocking when multiple queries are made at the same time
+
+	config := &clientcredentials.Config{ClientID: consumer_key,
+		ClientSecret: consumer_secret,
+		TokenURL:     "https://api.twitter.com/oauth2/token"}
+
+	// OAuth2 http.Client will automatically authorize Requests
+	httpClient := config.Client(oauth2.NoContext)
+
+	queue := make(chan query)
+	c := &TwitterApi{
+		queryQueue:           queue,
+		bucket:               nil,
+		returnRateLimitError: false,
+		HttpClient:           httpClient,
 		Log:                  silentLogger{},
 		baseUrl:              BaseUrl,
 	}
