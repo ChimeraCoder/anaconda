@@ -56,7 +56,7 @@ func init() {
 	})
 
 	for _, elems := range endpointElems {
-		endpoint := "/" + path.Join(elems...)
+		endpoint := strings.Replace("/"+path.Join(elems...), "_id_", "?id=", -1)
 		filename := filepath.Join(append([]string{"json"}, elems...)...)
 
 		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
