@@ -6,7 +6,7 @@ import (
 )
 
 type Tweet struct {
-	Contributors         []Contributor          `json:"contributors"` // Not yet generally available to all, so hard to test
+	Contributors         []int64                `json:"contributors"`
 	Coordinates          *Coordinates           `json:"coordinates"`
 	CreatedAt            string                 `json:"created_at"`
 	Entities             Entities               `json:"entities"`
