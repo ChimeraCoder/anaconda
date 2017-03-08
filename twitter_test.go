@@ -205,10 +205,9 @@ func Test_GetTweet(t *testing.T) {
 	expectedEntities := anaconda.Entities{Hashtags: []struct {
 		Indices []int
 		Text    string
-	}{struct {
-		Indices []int
-		Text    string
-	}{Indices: []int{86, 93}, Text: "golang"}}, Urls: []struct {
+	}{
+
+		{Indices: []int{86, 93}, Text: "golang"}}, Urls: []struct {
 		Indices      []int
 		Url          string
 		Display_url  string
@@ -219,7 +218,7 @@ func Test_GetTweet(t *testing.T) {
 		Screen_name string
 		Id          int64
 		Id_str      string
-	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{
+	}{}, Media: []anaconda.EntityMedia{{
 		Id:              303777106628841472,
 		Id_str:          "303777106628841472",
 		Media_url:       "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
