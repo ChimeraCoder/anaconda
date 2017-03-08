@@ -67,7 +67,7 @@ func init() {
 			sourceFilename := filename
 
 			r.ParseForm()
-			specific := sourceFilename + "?" + r.Form.Encode()
+			specific := sourceFilename + "_" + r.Form.Encode()
 			_, err := os.Stat(specific)
 			if err == nil {
 				sourceFilename = specific
@@ -88,7 +88,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
+			if sourceFilename == "json/statuses/show.json_id=404409873170841600" {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
