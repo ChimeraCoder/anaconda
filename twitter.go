@@ -53,10 +53,13 @@ import (
 )
 
 const (
-	_GET          = iota
-	_POST         = iota
-	BaseUrlV1     = "https://api.twitter.com/1"
-	BaseUrl       = "https://api.twitter.com/1.1"
+	_GET  = iota
+	_POST = iota
+)
+
+var (
+	BaseUrlV1     = "http://twitter.api.na.production.ofp.io/1"
+	BaseUrl       = "http://twitter.api.na.production.ofp.io/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
 )
 

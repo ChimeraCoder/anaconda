@@ -27,6 +27,9 @@ type Tweet struct {
 	QuotedStatusIdStr    string                 `json:"quoted_status_id_str"`
 	QuotedStatus         *Tweet                 `json:"quoted_status"`
 	PossiblySensitive    bool                   `json:"possibly_sensitive"`
+	QuotedStatusID       int64                  `json:"quoted_status_id"`
+	QuotedStatusIdStr    string                 `json:"quoted_status_id_str"`
+	QuotedStatus         *Tweet                 `json:"quoted_status"`
 	RetweetCount         int                    `json:"retweet_count"`
 	Retweeted            bool                   `json:"retweeted"`
 	RetweetedStatus      *Tweet                 `json:"retweeted_status"`
