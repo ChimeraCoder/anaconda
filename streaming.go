@@ -226,6 +226,8 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 			} else {
 				s.api.Log.Criticalf("Cannot request stream : %s", err)
 				return
+			default:
+				s.api.Log.Notice("Received unknown status: %+s", resp.StatusCode)
 			}
 		}
 		s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
