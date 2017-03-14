@@ -5,25 +5,27 @@ import (
 	"reflect"
 	"testing"
 
-	anaconda "."
+	"github.com/ChimeraCoder/anaconda"
 )
 
 func TestOEmbed(t *testing.T) {
 	// It is the only one that can be tested without auth
+	// However, it is still rate-limited
 	api := anaconda.NewTwitterApi("", "")
+	api.SetBaseUrl(testBase)
 	o, err := api.GetOEmbed(url.Values{"id": []string{"99530515043983360"}})
 	if err != nil {
 		t.Error(err)
 	}
 
 	if !reflect.DeepEqual(o, expectedOEmbed) {
-		t.Errorf("Actual OEmbed differs expected:\n%+v\n Got: \n%+v\n", expectedOEmbed, o)
+		t.Errorf("Actual OEmbed differs expected:\n%#v\n Got: \n%#v\n", expectedOEmbed, o)
 	}
 }
 
 var expectedOEmbed anaconda.OEmbed = anaconda.OEmbed{
 	Cache_age:     "3153600000",
-	Url:           "https://twitter.com/twitter/statuses/99530515043983360",
+	Url:           "https://twitter.com/twitter/status/99530515043983360",
 	Height:        0,
 	Provider_url:  "https://twitter.com",
 	Provider_name: "Twitter",

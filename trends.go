@@ -42,7 +42,7 @@ func (a TwitterApi) GetTrendsByPlace(id int64, v url.Values) (trendResp TrendRes
 	response_ch := make(chan response)
 	v = cleanValues(v)
 	v.Set("id", strconv.FormatInt(id, 10))
-	a.queryQueue <- query{BaseUrl + "/trends/place.json", v, &[]interface{}{&trendResp}, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/trends/place.json", v, &[]interface{}{&trendResp}, _GET, response_ch}
 	return trendResp, (<-response_ch).err
 }
 
@@ -50,7 +50,7 @@ func (a TwitterApi) GetTrendsByPlace(id int64, v url.Values) (trendResp TrendRes
 func (a TwitterApi) GetTrendsAvailableLocations(v url.Values) (locations []TrendLocation, err error) {
 	response_ch := make(chan response)
 	v = cleanValues(v)
-	a.queryQueue <- query{BaseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
 	return locations, (<-response_ch).err
 }
 
@@ -60,6 +60,6 @@ func (a TwitterApi) GetTrendsClosestLocations(lat float64, long float64, v url.V
 	v = cleanValues(v)
 	v.Set("lat", strconv.FormatFloat(lat, 'f', 6, 64))
 	v.Set("long", strconv.FormatFloat(long, 'f', 6, 64))
-	a.queryQueue <- query{BaseUrl + "/trends/closest.json", v, &locations, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/trends/closest.json", v, &locations, _GET, response_ch}
 	return locations, (<-response_ch).err
 }

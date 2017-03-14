@@ -14,7 +14,7 @@ func (a TwitterApi) CreateList(name, description string, v url.Values) (list Lis
 	v.Set("description", description)
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/lists/create.json", v, &list, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/lists/create.json", v, &list, _POST, response_ch}
 	return list, (<-response_ch).err
 }
 
@@ -29,7 +29,7 @@ func (a TwitterApi) AddUserToList(screenName string, listID int64, v url.Values)
 	var addUserToListResponse AddUserToListResponse
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/lists/members/create.json", v, &addUserToListResponse, _POST, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/lists/members/create.json", v, &addUserToListResponse, _POST, response_ch}
 	return addUserToListResponse.Users, (<-response_ch).err
 }
 
@@ -44,7 +44,7 @@ func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, e
 	var listResponse ListResponse
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/lists/ownerships.json", v, &listResponse, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/lists/ownerships.json", v, &listResponse, _GET, response_ch}
 	return listResponse.Lists, (<-response_ch).err
 }
 
@@ -56,6 +56,6 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 	v.Set("include_rts", strconv.FormatBool(includeRTs))
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
 }

@@ -35,6 +35,6 @@ type Source struct {
 
 func (a TwitterApi) GetFriendshipsShow(v url.Values) (relationshipResponse RelationshipResponse, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{BaseUrl + "/friendships/show.json", v, &relationshipResponse, _GET, response_ch}
+	a.queryQueue <- query{a.baseUrl + "/friendships/show.json", v, &relationshipResponse, _GET, response_ch}
 	return relationshipResponse, (<-response_ch).err
 }

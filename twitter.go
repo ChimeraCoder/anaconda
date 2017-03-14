@@ -45,6 +45,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/ChimeraCoder/tokenbucket"
@@ -76,6 +77,10 @@ type TwitterApi struct {
 	// and for checking rate-limiting headers
 	// Default logger is silent
 	Log Logger
+
+	// used for testing
+	// defaults to BaseUrl
+	baseUrl string
 }
 
 type query struct {
@@ -110,6 +115,7 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		returnRateLimitError: false,
 		HttpClient:           http.DefaultClient,
 		Log:                  silentLogger{},
+		baseUrl:              BaseUrl,
 	}
 	go c.throttledQuery()
 	return c
@@ -152,6 +158,11 @@ func (c *TwitterApi) SetDelay(t time.Duration) {
 
 func (c *TwitterApi) GetDelay() time.Duration {
 	return c.bucket.GetRate()
+}
+
+// SetBaseUrl is experimental and may be removed in future releases.
+func (c *TwitterApi) SetBaseUrl(baseUrl string) {
+	c.baseUrl = baseUrl
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -198,7 +209,17 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
-	if resp.StatusCode != 200 {
+	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
+	// so we need a special case when decoding the response
+	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") {
+		if resp.StatusCode == 204 {
+			// empty response, don't decode
+			return nil
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return newApiError(resp)
+		}
+	} else if resp.StatusCode != 200 {
 		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
