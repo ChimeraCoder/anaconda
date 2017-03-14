@@ -87,7 +87,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if sourceFilename == "json/statuses/show.json_id_404409873170841600" {
+			if sourceFilename == filepath.Join("json", "statuses", "show.json_id_404409873170841600") {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
