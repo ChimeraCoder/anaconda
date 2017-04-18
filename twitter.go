@@ -40,6 +40,7 @@
 package anaconda
 
 import (
+	"compress/zlib"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -243,6 +244,17 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	// Prevent memory leak in the case where the Response.Body is not used.
 	// As per the net/http package, Response.Body still needs to be closed.
 	defer resp.Body.Close()
+
+	// Twitter returns deflate data despite the client only requesting gzip
+	// data.  net/http automatically handles the latter but not the former:
+	// https://github.com/golang/go/issues/18779
+	if resp.Header.Get("Content-Encoding") == "deflate" {
+		var err error
+		resp.Body, err = zlib.NewReader(resp.Body)
+		if err != nil {
+			return err
+		}
+	}
 
 	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
 	// so we need a special case when decoding the response
