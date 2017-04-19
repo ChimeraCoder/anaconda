@@ -1,7 +1,7 @@
 Anaconda
 ====================
 
-[![Build Status](https://api.travis-ci.org/ChimeraCoder/anaconda.png)](https://travis-ci.org/ChimeraCoder/anaconda) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.png)](https://godoc.org/github.com/ChimeraCoder/anaconda)
+[![Build Status](https://travis-ci.org/ChimeraCoder/anaconda.svg?branch=master)](https://travis-ci.org/ChimeraCoder/anaconda) [![Build Status](https://ci.appveyor.com/api/projects/status/63pi6csod8bps80i/branch/master?svg=true)](https://ci.appveyor.com/project/ChimeraCoder/anaconda/branch/master) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.svg)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
 
@@ -57,7 +57,7 @@ In a few cases, a shortened form has been chosen to make life easier (for exampl
 Error Handling, Rate Limiting, and Throttling
 ---------------------------------
 
-###Error Handling
+### Error Handling
 
 Twitter errors are returned as an `ApiError`, which satisfies the `error` interface and can be treated as a vanilla `error`. However, it also contains the additional information returned by the Twitter API that may be useful in deciding how to proceed after encountering an error.
 
@@ -70,7 +70,7 @@ In other words, users of the `anaconda` library should not need to handle rate l
 (If desired, this feature can be turned off by calling `ReturnRateLimitError(true)`.)
 
 
-###Throttling
+### Throttling
 
 Anaconda now supports automatic client-side throttling of queries to avoid hitting the Twitter rate-limit.
 
@@ -92,7 +92,7 @@ To turn off automatic throttling, set the delay to `0`:
     api.SetDelay(0 * time.Second)
 ````
 
-###Query Queue Persistence
+### Query Queue Persistence
 
 If your code creates a NewTwitterApi in a regularly called function, you'll need to call `.Close()` on the API struct to clear the queryQueue and allow the goroutine to exit. Otherwise you could see goroutine and therefor heap memory leaks in long-running applications.
 

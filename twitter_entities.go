@@ -48,16 +48,16 @@ type EntityMedia struct {
 }
 
 type MediaSizes struct {
-	Medium MediaSize
-	Thumb  MediaSize
-	Small  MediaSize
-	Large  MediaSize
+	Medium MediaSize `json:"medium"`
+	Thumb  MediaSize `json:"thumb"`
+	Small  MediaSize `json:"small"`
+	Large  MediaSize `json:"large"`
 }
 
 type MediaSize struct {
-	W      int
-	H      int
-	Resize string
+	W      int    `json:"w"`
+	H      int    `json:"h"`
+	Resize string `json:"resize"`
 }
 
 type VideoInfo struct {

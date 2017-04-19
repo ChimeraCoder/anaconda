@@ -56,7 +56,7 @@ func init() {
 	})
 
 	for _, elems := range endpointElems {
-		endpoint := "/" + path.Join(elems...)
+		endpoint := strings.Replace("/"+path.Join(elems...), "_id_", "?id=", -1)
 		filename := filepath.Join(append([]string{"json"}, elems...)...)
 
 		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
@@ -67,11 +67,10 @@ func init() {
 			sourceFilename := filename
 
 			r.ParseForm()
-			specific := sourceFilename + "?" + r.Form.Encode()
+			specific := sourceFilename + "_" + strings.Replace(r.Form.Encode(), "=", "_", -1)
 			_, err := os.Stat(specific)
 			if err == nil {
 				sourceFilename = specific
-
 			} else {
 				if err != nil && !os.IsNotExist(err) {
 					fmt.Fprintf(w, "error: %s", err)
@@ -88,7 +87,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
+			if sourceFilename == filepath.Join("json", "statuses", "show.json_id_404409873170841600") {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
