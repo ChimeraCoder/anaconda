@@ -17,9 +17,7 @@ Examples
 If you already have the access token (and secret) for your user (Twitter provides this for your own account on the developer portal), creating the client is simple:
 
 ````go
-anaconda.SetConsumerKey("your-consumer-key")
-anaconda.SetConsumerSecret("your-consumer-secret")
-api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret", "your-consumer-key", "your-consumer-secret")
 ````
 
 ### Queries
