@@ -10,7 +10,12 @@ type UrlEntity struct {
 }
 
 type Entities struct {
-	UrlEntity
+	Urls []struct {
+		Indices      []int  `json:"indices"`
+		Url          string `json:"url"`
+		Display_url  string `json:"display_url"`
+		Expanded_url string `json:"expanded_url"`
+	} `json:"urls"`
 	Hashtags []struct {
 		Indices []int  `json:"indices"`
 		Text    string `json:"text"`
