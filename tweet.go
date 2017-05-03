@@ -9,12 +9,14 @@ type Tweet struct {
 	Contributors                []int64                `json:"contributors"`
 	Coordinates                 *Coordinates           `json:"coordinates"`
 	CreatedAt                   string                 `json:"created_at"`
+	DisplayTextRange            []int                  `json:"display_text_range"`
 	Entities                    Entities               `json:"entities"`
 	ExtendedEntities            Entities               `json:"extended_entities"`
 	ExtendedTweet               ExtendedTweet          `json:"extended_tweet"`
 	FavoriteCount               int                    `json:"favorite_count"`
 	Favorited                   bool                   `json:"favorited"`
 	FilterLevel                 string                 `json:"filter_level"`
+	FullText                    string                 `json:"full_text"`
 	HasExtendedProfile          bool                   `json:"has_extended_profile"`
 	Id                          int64                  `json:"id"`
 	IdStr                       string                 `json:"id_str"`
