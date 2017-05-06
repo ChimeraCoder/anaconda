@@ -39,6 +39,17 @@ func (a TwitterApi) PostDMToUserId(text string, userId int64) (message DirectMes
 	return a.postDirectMessagesImpl(v)
 }
 
+// DeleteDirectMessage will destroy (delete) the direct message with the specified ID.
+// https://dev.twitter.com/rest/reference/post/direct_messages/destroy
+func (a TwitterApi) DeleteDirectMessage(id int64, includeEntities bool) (message DirectMessage, err error) {
+	v := url.Values{}
+	v.Set("id", strconv.FormatInt(id, 10))
+	v.Set("include_entities", strconv.FormatBool(includeEntities))
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/direct_messages/destroy.json", v, &message, _POST, response_ch}
+	return message, (<-response_ch).err
+}
+
 func (a TwitterApi) postDirectMessagesImpl(v url.Values) (message DirectMessage, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + "/direct_messages/new.json", v, &message, _POST, response_ch}
