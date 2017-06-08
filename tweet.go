@@ -93,7 +93,7 @@ func (t Tweet) Longitude() (float64, error) {
 	return 0, fmt.Errorf("No Coordinates in this Tweet")
 }
 
-// X is a concenience wrapper which returns the X (Longitude) coordinate easily
+// X is a convenience wrapper which returns the X (Longitude) coordinate easily
 func (t Tweet) X() (float64, error) {
 	return t.Longitude()
 }
