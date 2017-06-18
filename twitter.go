@@ -55,6 +55,8 @@ import (
 const (
 	_GET          = iota
 	_POST         = iota
+	_DELETE       = iota
+	_PUT          = iota
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
@@ -207,6 +209,26 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 	return decodeResponse(resp, data)
 }
 
+// apiDel issues a DELETE request to the Twitter API and decodes the response JSON to data.
+func (c TwitterApi) apiDel(urlStr string, form url.Values, data interface{}) error {
+	resp, err := oauthClient.Delete(c.HttpClient, c.Credentials, urlStr, form)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return decodeResponse(resp, data)
+}
+
+// apiPut issues a PUT request to the Twitter API and decodes the response JSON to data.
+func (c TwitterApi) apiPut(urlStr string, form url.Values, data interface{}) error {
+	resp, err := oauthClient.Put(c.HttpClient, c.Credentials, urlStr, form)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return decodeResponse(resp, data)
+}
+
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
@@ -243,6 +265,10 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 	case _GET:
 		return c.apiGet(urlStr, form, data)
 	case _POST:
+		return c.apiPost(urlStr, form, data)
+	case _DELETE:
+		return c.apiPost(urlStr, form, data)
+	case _PUT:
 		return c.apiPost(urlStr, form, data)
 	default:
 		return fmt.Errorf("HTTP method not yet supported")
