@@ -3,6 +3,7 @@ package anaconda
 import (
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // CreateList implements /lists/create.json
@@ -27,6 +28,20 @@ func (a TwitterApi) AddUserToList(screenName string, listID int64, v url.Values)
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + "/lists/members/create.json", v, &addUserToListResponse, _POST, response_ch}
 	return addUserToListResponse.Users, (<-response_ch).err
+}
+
+// AddMultipleUsersToList implements /lists/members/create_all.json
+func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v url.Values) (list List, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", strings.Join(screenNames, ","))
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members/create_all.json", v, &list, _POST, response_ch}
+	r := <-response_ch
+	return list, r.err
 }
 
 // GetListsOwnedBy implements /lists/ownerships.json
