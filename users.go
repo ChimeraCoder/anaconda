@@ -55,11 +55,11 @@ func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, er
 	return u, (<-response_ch).err
 }
 
-// PostUsersReportAsSpam : Reports and Blocks a User by screen_name
+// PostUsersReportSpam : Reports and Blocks a User by screen_name
 // Reference : https://dev.twitter.com/rest/reference/post/users/report_spam
 // If you don't want to block the user you should add
 // v.Set("perform_block", "false")
-func (a TwitterApi) PostUsersReportAsSpam(username string, v url.Values) (u User, err error) {
+func (a TwitterApi) PostUsersReportSpam(username string, v url.Values) (u User, err error) {
 	v = cleanValues(v)
 	v.Set("screen_name", username)
 	response_ch := make(chan response)
@@ -67,11 +67,11 @@ func (a TwitterApi) PostUsersReportAsSpam(username string, v url.Values) (u User
 	return u, (<-response_ch).err
 }
 
-// PostUsersReportAsSpamById : Reports and Blocks a User by user_id
+// PostUsersReportSpamById : Reports and Blocks a User by user_id
 // Reference : https://dev.twitter.com/rest/reference/post/users/report_spam
 // If you don't want to block the user you should add
 // v.Set("perform_block", "false")
-func (a TwitterApi) PostUsersReportAsSpamById(id int64, v url.Values) (u User, err error) {
+func (a TwitterApi) PostUsersReportSpamById(id int64, v url.Values) (u User, err error) {
 	v = cleanValues(v)
 	v.Set("user_id", strconv.FormatInt(id, 10))
 	response_ch := make(chan response)
