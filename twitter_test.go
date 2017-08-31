@@ -30,9 +30,7 @@ var testBase string
 
 func init() {
 	// Initialize api so it can be used even when invidual tests are run in isolation
-	anaconda.SetConsumerKey(CONSUMER_KEY)
-	anaconda.SetConsumerSecret(CONSUMER_SECRET)
-	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	api = anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
 
 	if CONSUMER_KEY != "" && CONSUMER_SECRET != "" && ACCESS_TOKEN != "" && ACCESS_TOKEN_SECRET != "" {
 		return
@@ -115,9 +113,7 @@ func Test_TwitterCredentials(t *testing.T) {
 
 // Test that creating a TwitterApi client creates a client with non-empty OAuth credentials
 func Test_TwitterApi_NewTwitterApi(t *testing.T) {
-	anaconda.SetConsumerKey(CONSUMER_KEY)
-	anaconda.SetConsumerSecret(CONSUMER_SECRET)
-	apiLocal := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	apiLocal := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
 
 	if apiLocal.Credentials == nil {
 		t.Fatalf("Twitter Api client has empty (nil) credentials")

@@ -10,17 +10,12 @@ import (
 // Initialize an client library for a given user.
 // This only needs to be done *once* per user
 func ExampleTwitterApi_InitializeClient() {
-	anaconda.SetConsumerKey("your-consumer-key")
-	anaconda.SetConsumerSecret("your-consumer-secret")
-	api := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	api := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, "your-consumer-key", "your-consumer-secret")
 	fmt.Println(*api.Credentials)
 }
 
 func ExampleTwitterApi_GetSearch() {
-
-	anaconda.SetConsumerKey("your-consumer-key")
-	anaconda.SetConsumerSecret("your-consumer-secret")
-	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret", "your-consumer-key", "your-consumer-secret")
 	search_result, err := api.GetSearch("golang", nil)
 	if err != nil {
 		panic(err)
@@ -32,7 +27,7 @@ func ExampleTwitterApi_GetSearch() {
 
 // Throttling queries can easily be handled in the background, automatically
 func ExampleTwitterApi_Throttling() {
-	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret", "your-consumer-key", "your-consumer-secret")
 	api.EnableThrottling(10*time.Second, 5)
 
 	// These queries will execute in order
