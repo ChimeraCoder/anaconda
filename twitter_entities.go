@@ -10,7 +10,8 @@ type UrlEntity struct {
 }
 
 type Entities struct {
-	Hashtags []struct {
+	Description UrlEntity
+	Hashtags    []struct {
 		Indices []int
 		Text    string
 	}
