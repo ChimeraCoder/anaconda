@@ -182,6 +182,14 @@ func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Creden
 	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
 }
 
+func defaultValues(v url.Values) url.Values {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("tweet_mode", "extended")
+	return v
+}
+
 func cleanValues(v url.Values) url.Values {
 	if v == nil {
 		return url.Values{}
@@ -191,6 +199,7 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
+	form = defaultValues(form)
 	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
