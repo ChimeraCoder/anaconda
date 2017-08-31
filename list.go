@@ -10,6 +10,10 @@ type AddUserToListResponse struct {
 	Users []User `json:"users"`
 }
 
+type GetListMembersResponse struct {
+	Users []User `json:"users"`
+}
+
 type List struct {
 	Slug            string `json:"slug"`
 	Name            string `json:"name"`
