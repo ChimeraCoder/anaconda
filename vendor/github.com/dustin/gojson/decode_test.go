@@ -1385,7 +1385,7 @@ func TestValidator(t *testing.T) {
 		err := Validate([]byte(tt.in))
 		if (expectederr == nil) != (err == nil) {
 			t.Errorf("Incorrectly validated %v - %v/%v",
-			tt.in, expectederr, err)
+				tt.in, expectederr, err)
 		}
 	}
 }
