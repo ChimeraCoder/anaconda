@@ -49,6 +49,13 @@ type Tweet struct {
 	//Geo                  interface{} `json:"geo"`
 }
 
+type ExtendedTweet struct {
+	FullText         string   `json:"full_text"`
+	DisplayTextRange []int    `json:"display_text_range"`
+	Entities         Entities `json:"entities"`
+	ExtendedEntities Entities `json:"extended_entities"`
+}
+
 // CreatedAtTime is a convenience wrapper that returns the Created_at time, parsed as a time.Time struct
 func (t Tweet) CreatedAtTime() (time.Time, error) {
 	return time.Parse(time.RubyDate, t.CreatedAt)
