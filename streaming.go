@@ -163,7 +163,6 @@ func (s *Stream) listen(response http.Response) {
 		} else {
 			s.C <- jsonToKnownType(j)
 		}
-
 	}
 }
 
@@ -261,6 +260,7 @@ func (a TwitterApi) newStream(urlStr string, v url.Values, method int) *Stream {
 		api: a,
 		C:   make(chan interface{}),
 	}
+
 	stream.start(urlStr, v, method)
 	return &stream
 }

@@ -67,7 +67,9 @@ func init() {
 			sourceFilename := filename
 
 			r.ParseForm()
-			specific := sourceFilename + "_" + strings.Replace(r.Form.Encode(), "=", "_", -1)
+			form := strings.Replace(r.Form.Encode(), "=", "_", -1)
+			form = strings.Replace(form, "&", "_", -1)
+			specific := sourceFilename + "_" + form
 			_, err := os.Stat(specific)
 			if err == nil {
 				sourceFilename = specific
@@ -87,7 +89,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if sourceFilename == filepath.Join("json", "statuses", "show.json_id_404409873170841600") {
+			if sourceFilename == filepath.Join("json", "statuses", "show.json_id_404409873170841600_tweet_mode_extended") {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -197,7 +199,7 @@ func Test_GetTweet(t *testing.T) {
 	}
 
 	if tweet.Text != tweetText {
-		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweet.Text)
 	}
 
 	// Check the entities
