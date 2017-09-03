@@ -19,3 +19,6 @@ go:
   - 1.8
   - 1.9
   - tip
+
+script:
+    - go test -race -v -timeout 120s ./...
