@@ -54,3 +54,11 @@ func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, er
 	a.queryQueue <- query{a.baseUrl + "/users/search.json", v, &u, _GET, response_ch}
 	return u, (<-response_ch).err
 }
+
+// PostAccountUpdateProfile updates the active users profile with the provided values
+func (a TwitterApi) PostAccountUpdateProfile(v url.Values) (u User, err error) {
+	v = cleanValues(v)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/account/update_profile.json", v, &u, _POST, response_ch}
+	return u, (<-response_ch).err
+}

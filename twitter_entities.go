@@ -1,12 +1,14 @@
 package anaconda
 
+type UrlItem struct{
+	Indices      []int
+	Url          string
+	Display_url  string
+	Expanded_url string
+}
+
 type UrlEntity struct {
-	Urls []struct {
-		Indices      []int
-		Url          string
-		Display_url  string
-		Expanded_url string
-	}
+	Urls []UrlItem
 }
 
 type Entities struct {
@@ -14,12 +16,7 @@ type Entities struct {
 		Indices []int
 		Text    string
 	}
-	Urls []struct {
-		Indices      []int
-		Url          string
-		Display_url  string
-		Expanded_url string
-	}
+	Urls          []UrlItem
 	Url           UrlEntity
 	User_mentions []struct {
 		Name        string
@@ -29,6 +26,7 @@ type Entities struct {
 		Id_str      string
 	}
 	Media []EntityMedia
+	Description   UrlEntity
 }
 
 type EntityMedia struct {
