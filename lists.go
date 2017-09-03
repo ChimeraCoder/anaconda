@@ -32,9 +32,7 @@ func (a TwitterApi) AddUserToList(screenName string, listID int64, v url.Values)
 
 // AddMultipleUsersToList implements /lists/members/create_all.json
 func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v url.Values) (list List, err error) {
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	v.Set("list_id", strconv.FormatInt(listID, 10))
 	v.Set("screen_name", strings.Join(screenNames, ","))
 
@@ -69,9 +67,7 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 
 // GetList implements /lists/show.json
 func (a TwitterApi) GetList(listID int64, v url.Values) (list List, err error) {
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	v.Set("list_id", strconv.FormatInt(listID, 10))
 
 	response_ch := make(chan response)
