@@ -157,7 +157,7 @@ func (a TwitterApi) GetFriendsListAll(v url.Values) (result chan FriendsPage) {
 			result <- FriendsPage{c.Users, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
