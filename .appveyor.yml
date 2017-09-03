@@ -5,4 +5,4 @@ environment:
 
 build_script:
     - go get .
-    - go test -v
+    - go test -race -v -timeout 120s
