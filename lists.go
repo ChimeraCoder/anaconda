@@ -51,3 +51,16 @@ func (a TwitterApi) GetListTweets(listID int64, includeRTs bool, v url.Values) (
 	a.queryQueue <- query{a.baseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
 }
+
+func (a TwitterApi) GetListTweetsBySlug(slug string, ownerScreenName string, includeRTs bool, v url.Values) (tweets []Tweet, err error) {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("slug", slug)
+  v.Set("owner_screen_name", ownerScreenName)
+	v.Set("include_rts", strconv.FormatBool(includeRTs))
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/statuses.json", v, &tweets, _GET, response_ch}
+	return tweets, (<-response_ch).err
+}
