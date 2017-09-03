@@ -1,0 +1,58 @@
+package anaconda
+
+import "net/url"
+
+type GeoReverseSearchResult struct {
+	Result struct {
+		Places []struct {
+			Id              string `json:"id"`
+			URL             string `json:"url"`
+			PlaceType       string `json:"place_type"`
+			Name            string `json:"name"`
+			FullName        string `json:"full_name"`
+			CountryCode     string `json:"country_code"`
+			Country         string `json:"country"`
+			ContainedWithin []struct {
+				ID          string    `json:"id"`
+				URL         string    `json:"url"`
+				PlaceType   string    `json:"place_type"`
+				Name        string    `json:"name"`
+				FullName    string    `json:"full_name"`
+				CountryCode string    `json:"country_code"`
+				Country     string    `json:"country"`
+				Centroid    []float64 `json:"centroid"`
+				BoundingBox struct {
+					Type        string        `json:"type"`
+					Coordinates [][][]float64 `json:"coordinates"`
+				} `json:"bounding_box"`
+				Attributes struct {
+				} `json:"attributes"`
+			} `json:"contained_within"`
+			Centroid    []float64 `json:"centroid"`
+			BoundingBox struct {
+				Type        string        `json:"type"`
+				Coordinates [][][]float64 `json:"coordinates"`
+			} `json:"bounding_box"`
+			Attributes struct {
+			} `json:"attributes"`
+		} `json:"places"`
+	} `json:"result"`
+	Query struct {
+		URL    string `json:"url"`
+		Type   string `json:"type"`
+		Params struct {
+			Accuracy    float64 `json:"accuracy"`
+			Granularity string  `json:"granularity"`
+			Coordinates struct {
+				Coordinates []float64 `json:"coordinates"`
+				Type        string    `json:"type"`
+			} `json:"coordinates"`
+		} `json:"params"`
+	} `json:"query"`
+}
+
+func (a TwitterApi) GetPlaces(v url.Values) (p GeoReverseSearchResult, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/geo/reverse_geocode.json", v, &p, _GET, response_ch}
+	return p, (<-response_ch).err
+}
