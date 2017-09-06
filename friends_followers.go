@@ -77,12 +77,9 @@ func (a TwitterApi) GetFollowersIds(v url.Values) (c Cursor, err error) {
 // Like GetFollowersIds, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFollowersIdsAll(v url.Values) (result chan FollowersIdsPage) {
-
 	result = make(chan FollowersIdsPage)
 
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	go func(a TwitterApi, v url.Values, result chan FollowersIdsPage) {
 		// Cursor defaults to the first page ("-1")
 		next_cursor := "-1"
@@ -144,12 +141,9 @@ func (a TwitterApi) GetFriendsList(v url.Values) (c UserCursor, err error) {
 // Like GetFriendsList, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFriendsListAll(v url.Values) (result chan FriendsPage) {
-
 	result = make(chan FriendsPage)
 
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	go func(a TwitterApi, v url.Values, result chan FriendsPage) {
 		// Cursor defaults to the first page ("-1")
 		next_cursor := "-1"
@@ -163,7 +157,7 @@ func (a TwitterApi) GetFriendsListAll(v url.Values) (result chan FriendsPage) {
 			result <- FriendsPage{c.Users, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
@@ -175,12 +169,9 @@ func (a TwitterApi) GetFriendsListAll(v url.Values) (result chan FriendsPage) {
 // Like GetFollowersList, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage) {
-
 	result = make(chan FollowersPage)
 
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	go func(a TwitterApi, v url.Values, result chan FollowersPage) {
 		// Cursor defaults to the first page ("-1")
 		next_cursor := "-1"
@@ -214,12 +205,9 @@ func (a TwitterApi) GetFollowersUser(id int64, v url.Values) (c Cursor, err erro
 // Like GetFriendsIds, but returns a channel instead of a cursor and pre-fetches the remaining results
 // This channel is closed once all values have been fetched
 func (a TwitterApi) GetFriendsIdsAll(v url.Values) (result chan FriendsIdsPage) {
-
 	result = make(chan FriendsIdsPage)
 
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	go func(a TwitterApi, v url.Values, result chan FriendsIdsPage) {
 		// Cursor defaults to the first page ("-1")
 		next_cursor := "-1"

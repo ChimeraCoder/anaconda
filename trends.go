@@ -49,7 +49,6 @@ func (a TwitterApi) GetTrendsByPlace(id int64, v url.Values) (trendResp TrendRes
 // https://dev.twitter.com/rest/reference/get/trends/available
 func (a TwitterApi) GetTrendsAvailableLocations(v url.Values) (locations []TrendLocation, err error) {
 	response_ch := make(chan response)
-	v = cleanValues(v)
 	a.queryQueue <- query{a.baseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
 	return locations, (<-response_ch).err
 }
