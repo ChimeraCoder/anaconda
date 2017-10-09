@@ -36,6 +36,17 @@ type VideoMedia struct {
 	Video            Video  `json:"video"`
 }
 
+type VideoStatus struct {
+	ProcessingInfo ProcessingInfo `json:"processing_info"`
+}
+
+type ProcessingInfo struct {
+	State           string       `json:"state"`
+	CheckAfterSecs  int          `json:"check_after_secs"`
+	ProgressPercent int          `json:"progress_percent"`
+	TwitterError    TwitterError `json:"error"`
+}
+
 func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	v := url.Values{}
 	v.Set("media_data", base64String)
@@ -51,6 +62,7 @@ func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMed
 	v := url.Values{}
 	v.Set("command", "INIT")
 	v.Set("media_type", mimeType)
+	v.Set("media_category", "tweet_video")
 	v.Set("total_bytes", strconv.FormatInt(int64(totalBytes), 10))
 
 	var mediaResponse ChunkedMedia
@@ -74,6 +86,18 @@ func (a TwitterApi) UploadVideoAppend(mediaIdString string,
 	response_ch := make(chan response)
 	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &emptyResponse, _POST, response_ch}
 	return (<-response_ch).err
+}
+
+func (a TwitterApi) UploadVideoStatus(mediaIdString string) (videoStatus VideoStatus, err error) {
+	v := url.Values{}
+	v.Set("command", "STATUS")
+	v.Set("media_id", mediaIdString)
+
+	var videoStatusResponse VideoStatus
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &videoStatusResponse, _GET, response_ch}
+	return videoStatusResponse, (<-response_ch).err
 }
 
 func (a TwitterApi) UploadVideoFinalize(mediaIdString string) (videoMedia VideoMedia, err error) {
