@@ -6,6 +6,7 @@ type User struct {
 	DefaultProfile                 bool     `json:"default_profile"`
 	DefaultProfileImage            bool     `json:"default_profile_image"`
 	Description                    string   `json:"description"`
+	Email                          string   `json:"email"`
 	Entities                       Entities `json:"entities"`
 	FavouritesCount                int      `json:"favourites_count"`
 	FollowRequestSent              bool     `json:"follow_request_sent"`
