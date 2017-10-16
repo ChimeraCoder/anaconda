@@ -17,10 +17,10 @@ func (a TwitterApi) GetDirectMessagesSent(v url.Values) (messages []DirectMessag
 	return messages, (<-response_ch).err
 }
 
-func (a TwitterApi) GetDirectMessagesShow(v url.Values) (messages []DirectMessage, err error) {
+func (a TwitterApi) GetDirectMessagesShow(v url.Values) (message DirectMessage, err error) {
 	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/direct_messages/show.json", v, &messages, _GET, response_ch}
-	return messages, (<-response_ch).err
+	a.queryQueue <- query{a.baseUrl + "/direct_messages/show.json", v, &message, _GET, response_ch}
+	return message, (<-response_ch).err
 }
 
 // https://dev.twitter.com/docs/api/1.1/post/direct_messages/new
