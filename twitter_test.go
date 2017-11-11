@@ -272,7 +272,7 @@ func Test_GetQuotedTweet(t *testing.T) {
 	}
 
 	if tweet.QuotedStatus.Text != quotedText {
-		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+		t.Fatalf("Expected quoted status text %#v, received %#v", quotedText, tweet.QuotedStatus.Text)
 	}
 }
 
