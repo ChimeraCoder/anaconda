@@ -272,7 +272,7 @@ func Test_GetQuotedTweet(t *testing.T) {
 	}
 
 	if tweet.QuotedStatus.Text != quotedText {
-		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+		t.Fatalf("Expected quoted status text %#v, received %#v", quotedText, tweet.QuotedStatus.Text)
 	}
 }
 
@@ -388,6 +388,18 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 	}
 }
 
+func Test_DMScreenName(t *testing.T) {
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY = 15 * time.Second
@@ -413,16 +425,4 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
-}
-
-func Test_DMScreenName(t *testing.T) {
-	to, err := api.GetSelf(url.Values{})
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
-	if err != nil {
-		t.Error(err)
-		return
-	}
 }
