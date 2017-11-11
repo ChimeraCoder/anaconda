@@ -29,4 +29,5 @@ go:
   - tip
 
 script:
-    - go test -race -v -timeout 120s ./...
+  - echo $TRAVIS_GO_VERSION
+  - if [ "$TRAVIS_GO_VERSION" == "1.6" ] || [ "$TRAVIS_GO_VERSION" == "1.7" ] || [ "$TRAVIS_GO_VERSION" == "1.8" ]; then go list ./... | grep -v vendor | xargs go test -race -v -timeout 60s; else go test -race -v -timeout 60s ./...; fi
