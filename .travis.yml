@@ -9,7 +9,8 @@ before_script:
 
   # If `go generate` or `gofmt` yielded any changes,
   # this will fail with an error message like "too many arguments"
-  # or "M: binary operator expected"
+  # or "M: binary operator expected" and show the diff.
+  - git diff
   - git add .
   - git diff-index --cached --exit-code HEAD
 
