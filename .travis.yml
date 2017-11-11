@@ -4,6 +4,13 @@ os:
   - linux
   - osx
 
+install:
+  # Use gofmt from Go 1.9 for the pre-build check on all builds
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then wget -O go.tar.gz https://storage.googleapis.com/golang/go1.9.darwin-amd64.tar.gz; else wget -O go.tar.gz https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz; fi
+  - tar -C /tmp -xvf go.tar.gz go/bin/gofmt
+  - sudo mv /tmp/go/bin/gofmt /usr/bin/gofmt
+  - rm go.tar.gz
+
 before_script:
   - gofmt -w .
 
