@@ -61,8 +61,8 @@ type FollowersIdsPage struct {
 	Error error
 }
 
-//GetFriendshipsNoRetweets s a collection of user_ids that the currently authenticated user does not want to receive retweets from.
-//It does not currently support the stringify_ids parameter
+// GetFriendshipsNoRetweets returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
+// It does not currently support the stringify_ids parameter.
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + "/friendships/no_retweets/ids.json", nil, &ids, _GET, response_ch}
