@@ -122,6 +122,10 @@ type EventTweet struct {
 	TargetObject *Tweet `json:"target_object"`
 }
 
+type EventFollow struct {
+	Event
+}
+
 type TooManyFollow struct {
 	Warning *struct {
 		Code    string `json:"code"`
@@ -208,6 +212,8 @@ func jsonToKnownType(j []byte) interface{} {
 	} else if o := new(EventList); jsonAsStruct(j, "/target_object/slug", &o) {
 		return *o
 	} else if o := new(Event); jsonAsStruct(j, "/target_object", &o) {
+		return *o
+	} else if o := new(EventFollow); jsonAsStruct(j, "/event", &o) {
 		return *o
 	} else {
 		return nil
