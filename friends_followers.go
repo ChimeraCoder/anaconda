@@ -93,7 +93,7 @@ func (a TwitterApi) GetFollowersIdsAll(v url.Values) (result chan FollowersIdsPa
 			result <- FollowersIdsPage{c.Ids, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
@@ -185,7 +185,7 @@ func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage
 			result <- FollowersPage{c.Users, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
@@ -221,7 +221,7 @@ func (a TwitterApi) GetFriendsIdsAll(v url.Values) (result chan FriendsIdsPage) 
 			result <- FriendsIdsPage{c.Ids, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
