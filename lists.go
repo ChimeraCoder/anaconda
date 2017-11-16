@@ -42,6 +42,34 @@ func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v
 	return list, r.err
 }
 
+func (a TwitterApi) GetListMembers(listID int64, v url.Values) ([]User, error) {
+	v = cleanValues(v)
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("cursor", "-1")
+
+	var all []User
+	var lmResp ListMembershipResponse
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &lmResp, _GET, response_ch}
+	if err := (<-response_ch).err; err != nil {
+		return nil, err
+	}
+	all = lmResp.Users
+	for lmResp.NextCursor != 0 {
+		//log.Printf("additonal list(%d) members req. %d %d.", listID, lmResp.NextCursor, len(all))
+
+		v.Set("cursor", strconv.FormatInt(int64(lmResp.NextCursor), 10))
+
+		response_ch = make(chan response)
+		a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &lmResp, _GET, response_ch}
+		if err := (<-response_ch).err; err != nil {
+			return nil, err
+		}
+		all = append(all, lmResp.Users...)
+	}
+	return all, nil
+}
+
 // GetListsOwnedBy implements /lists/ownerships.json
 // screen_name, count, and cursor are all optional values
 func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, err error) {

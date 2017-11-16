@@ -1,9 +1,18 @@
 package anaconda
 
+type NextPrevCursor struct {
+	PreviousCursor int `json:"previous_cursor"`
+	NextCursor     int `json:"next_cursor"`
+}
+
 type ListResponse struct {
-	PreviousCursor int    `json:"previous_cursor"`
-	NextCursor     int    `json:"next_cursor"`
-	Lists          []List `json:"lists"`
+	NextPrevCursor
+	Lists []List `json:"lists"`
+}
+
+type ListMembershipResponse struct {
+	NextPrevCursor
+	Users []User `json:"users"`
 }
 
 type AddUserToListResponse struct {
