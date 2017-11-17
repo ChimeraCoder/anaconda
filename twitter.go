@@ -63,11 +63,9 @@ const (
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
 )
 
-var oauthClient = oauth.Client{
-	TemporaryCredentialRequestURI: "https://api.twitter.com/oauth/request_token",
-	ResourceOwnerAuthorizationURI: "https://api.twitter.com/oauth/authenticate",
-	TokenRequestURI:               "https://api.twitter.com/oauth/access_token",
-}
+var (
+	oauthCredentials oauth.Credentials
+)
 
 type TwitterApi struct {
 	oauthClient          oauth.Client
@@ -110,7 +108,12 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
 	c := &TwitterApi{
-		oauthClient: oauthClient,
+		oauthClient: oauth.Client{
+			TemporaryCredentialRequestURI: "https://api.twitter.com/oauth/request_token",
+			ResourceOwnerAuthorizationURI: "https://api.twitter.com/oauth/authenticate",
+			TokenRequestURI:               "https://api.twitter.com/oauth/access_token",
+			Credentials:                   oauthCredentials,
+		},
 		Credentials: &oauth.Credentials{
 			Token:  access_token,
 			Secret: access_token_secret,
@@ -138,13 +141,13 @@ func NewTwitterApiWithCredentials(access_token string, access_token_secret strin
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
 //This key is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerKey(consumer_key string) {
-	oauthClient.Credentials.Token = consumer_key
+	oauthCredentials.Token = consumer_key
 }
 
 //SetConsumerSecret will set the application-specific secret used in the initial OAuth process
 //This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
-	oauthClient.Credentials.Secret = consumer_secret
+	oauthCredentials.Secret = consumer_secret
 }
 
 // ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
