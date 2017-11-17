@@ -126,6 +126,15 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	}
 }
 
+// Test that creating a TwitterApi client creates a client with non-empty OAuth credentials
+func Test_TwitterApi_NewTwitterApiWithCredentials(t *testing.T) {
+	apiLocal := anaconda.NewTwitterApiWithCredentials(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
+
+	if apiLocal.Credentials == nil {
+		t.Fatalf("Twitter Api client has empty (nil) credentials")
+	}
+}
+
 // Test that the GetSearch function actually works and returns non-empty results
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
