@@ -42,9 +42,9 @@ func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 
 	var mediaResponse Media
 
-	response_ch := make(chan response)
-	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
-	return mediaResponse, (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, ch}
+	return mediaResponse, (<-ch).err
 }
 
 func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMedia ChunkedMedia, err error) {
@@ -55,9 +55,9 @@ func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMed
 
 	var mediaResponse ChunkedMedia
 
-	response_ch := make(chan response)
-	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
-	return mediaResponse, (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, ch}
+	return mediaResponse, (<-ch).err
 }
 
 func (a TwitterApi) UploadVideoAppend(mediaIdString string,
@@ -71,9 +71,9 @@ func (a TwitterApi) UploadVideoAppend(mediaIdString string,
 
 	var emptyResponse interface{}
 
-	response_ch := make(chan response)
-	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &emptyResponse, _POST, response_ch}
-	return (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &emptyResponse, _POST, ch}
+	return (<-ch).err
 }
 
 func (a TwitterApi) UploadVideoFinalize(mediaIdString string) (videoMedia VideoMedia, err error) {
@@ -83,7 +83,7 @@ func (a TwitterApi) UploadVideoFinalize(mediaIdString string) (videoMedia VideoM
 
 	var mediaResponse VideoMedia
 
-	response_ch := make(chan response)
-	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
-	return mediaResponse, (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, ch}
+	return mediaResponse, (<-ch).err
 }
