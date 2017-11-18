@@ -176,8 +176,8 @@ func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
 	return oauthClient.AuthorizationURL(tempCred, nil), tempCred, nil
 }
 
-// GetCredentials gets the access token using the verifier received with the callback URL
-// and the credentianls in the first part of the handshake. GetCredentials implements the third part of the OAuth handshake.
+// GetCredentials gets the access token using the verifier received with the callback URL and the
+// credentials in the first part of the handshake. GetCredentials implements the third part of the OAuth handshake.
 // The returned url.Values holds the access_token, the access_token_secret, the user_id and the screen_name.
 func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
 	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
