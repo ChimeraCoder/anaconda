@@ -73,19 +73,19 @@ func init() {
 	BasicLogger = &basicLogger{log: log.New(os.Stderr, log.Prefix(), log.LstdFlags)}
 }
 
-func (l basicLogger) Fatal(items ...interface{})               { l.log.Fatal(items) }
-func (l basicLogger) Fatalf(s string, items ...interface{})    { l.log.Fatalf(s, items) }
-func (l basicLogger) Panic(items ...interface{})               { l.log.Panic(items) }
-func (l basicLogger) Panicf(s string, items ...interface{})    { l.log.Panicf(s, items) }
-func (l basicLogger) Critical(items ...interface{})            { l.log.Print(items) }
-func (l basicLogger) Criticalf(s string, items ...interface{}) { l.log.Printf(s, items) }
-func (l basicLogger) Error(items ...interface{})               { l.log.Print(items) }
-func (l basicLogger) Errorf(s string, items ...interface{})    { l.log.Printf(s, items) }
-func (l basicLogger) Warning(items ...interface{})             { l.log.Print(items) }
-func (l basicLogger) Warningf(s string, items ...interface{})  { l.log.Printf(s, items) }
-func (l basicLogger) Notice(items ...interface{})              { l.log.Print(items) }
-func (l basicLogger) Noticef(s string, items ...interface{})   { l.log.Printf(s, items) }
-func (l basicLogger) Info(items ...interface{})                { l.log.Print(items) }
-func (l basicLogger) Infof(s string, items ...interface{})     { l.log.Printf(s, items) }
-func (l basicLogger) Debug(items ...interface{})               { l.log.Print(items) }
-func (l basicLogger) Debugf(s string, items ...interface{})    { l.log.Printf(s, items) }
+func (l basicLogger) Fatal(items ...interface{})               { l.log.Fatal(items...) }
+func (l basicLogger) Fatalf(s string, items ...interface{})    { l.log.Fatalf(s, items...) }
+func (l basicLogger) Panic(items ...interface{})               { l.log.Panic(items...) }
+func (l basicLogger) Panicf(s string, items ...interface{})    { l.log.Panicf(s, items...) }
+func (l basicLogger) Critical(items ...interface{})            { l.log.Print(items...) }
+func (l basicLogger) Criticalf(s string, items ...interface{}) { l.log.Printf(s, items...) }
+func (l basicLogger) Error(items ...interface{})               { l.log.Print(items...) }
+func (l basicLogger) Errorf(s string, items ...interface{})    { l.log.Printf(s, items...) }
+func (l basicLogger) Warning(items ...interface{})             { l.log.Print(items...) }
+func (l basicLogger) Warningf(s string, items ...interface{})  { l.log.Printf(s, items...) }
+func (l basicLogger) Notice(items ...interface{})              { l.log.Print(items...) }
+func (l basicLogger) Noticef(s string, items ...interface{})   { l.log.Printf(s, items...) }
+func (l basicLogger) Info(items ...interface{})                { l.log.Print(items...) }
+func (l basicLogger) Infof(s string, items ...interface{})     { l.log.Printf(s, items...) }
+func (l basicLogger) Debug(items ...interface{})               { l.log.Print(items...) }
+func (l basicLogger) Debugf(s string, items ...interface{})    { l.log.Printf(s, items...) }
