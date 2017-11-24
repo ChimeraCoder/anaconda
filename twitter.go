@@ -58,6 +58,7 @@ const (
 	_POST         = iota
 	_DELETE       = iota
 	_PUT          = iota
+	ClientTimeout = 20
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
@@ -125,6 +126,8 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		Log:                  silentLogger{},
 		baseUrl:              BaseUrl,
 	}
+	//Configure a timeout to HTTP client (DefaultClient has no default timeout, which may deadlock Mutex-wrapped uses of the lib.)
+	c.HttpClient.Timeout = time.Duration(ClientTimeout * time.Second)
 	go c.throttledQuery()
 	return c
 }
