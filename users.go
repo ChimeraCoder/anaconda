@@ -65,7 +65,7 @@ func (a TwitterApi) GetUsersSuggestions(v url.Values) (u []User, err error) {
 }
 
 // PostUsersReportSpam : Reports and Blocks a User by screen_name
-// Reference : https://dev.twitter.com/rest/reference/post/users/report_spam
+// Reference : https://developer.twitter.com/en/docs/accounts-and-users/mute-block-report-users/api-reference/post-users-report_spam
 // If you don't want to block the user you should add
 // v.Set("perform_block", "false")
 func (a TwitterApi) PostUsersReportSpam(username string, v url.Values) (u User, err error) {
@@ -77,7 +77,7 @@ func (a TwitterApi) PostUsersReportSpam(username string, v url.Values) (u User, 
 }
 
 // PostUsersReportSpamById : Reports and Blocks a User by user_id
-// Reference : https://dev.twitter.com/rest/reference/post/users/report_spam
+// Reference : https://developer.twitter.com/en/docs/accounts-and-users/mute-block-report-users/api-reference/post-users-report_spam
 // If you don't want to block the user you should add
 // v.Set("perform_block", "false")
 func (a TwitterApi) PostUsersReportSpamById(id int64, v url.Values) (u User, err error) {

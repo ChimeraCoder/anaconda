@@ -12,7 +12,7 @@ import (
 
 const (
 	//Error code defintions match the Twitter documentation
-	//https://dev.twitter.com/docs/error-codes-responses
+	//https://developer.twitter.com/en/docs/basics/response-codes
 	TwitterErrorCouldNotAuthenticate    = 32
 	TwitterErrorDoesNotExist            = 34
 	TwitterErrorAccountSuspended        = 64
