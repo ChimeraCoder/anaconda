@@ -72,3 +72,7 @@ type Variant struct {
 	ContentType string `json:"content_type"`
 	Url         string `json:"url"`
 }
+
+type Category struct {
+	Name string `json:"name"`
+}
