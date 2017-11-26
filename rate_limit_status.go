@@ -24,7 +24,7 @@ func (a TwitterApi) GetRateLimits(r []string) (rateLimitStatusResponse RateLimit
 	resources := strings.Join(r, ",")
 	v := url.Values{}
 	v.Set("resources", resources)
-	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/application/rate_limit_status.json", v, &rateLimitStatusResponse, _GET, response_ch}
-	return rateLimitStatusResponse, (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/application/rate_limit_status.json", v, &rateLimitStatusResponse, _GET, ch}
+	return rateLimitStatusResponse, (<-ch).err
 }

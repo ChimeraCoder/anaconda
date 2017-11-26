@@ -16,7 +16,7 @@ func (a TwitterApi) VerifyCredentials() (ok bool, err error) {
 
 // Get the user object for the authenticated user. Requests /account/verify_credentials
 func (a TwitterApi) GetSelf(v url.Values) (u User, err error) {
-	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/account/verify_credentials.json", v, &u, _GET, response_ch}
-	return u, (<-response_ch).err
+	ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/account/verify_credentials.json", v, &u, _GET, ch}
+	return u, (<-ch).err
 }

@@ -104,14 +104,14 @@ const DEFAULT_CAPACITY = 5
 
 //NewTwitterApi takes an user-specific access token and secret and returns a TwitterApi struct for that user.
 //The TwitterApi struct can be used for accessing any of the endpoints available.
-func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi {
+func NewTwitterApi(accessToken string, accessTokenSecret string) *TwitterApi {
 	//TODO figure out how much to buffer this channel
 	//A non-buffered channel will cause blocking when multiple queries are made at the same time
 	queue := make(chan query)
 	c := &TwitterApi{
 		Credentials: &oauth.Credentials{
-			Token:  access_token,
-			Secret: access_token_secret,
+			Token:  accessToken,
+			Secret: accessTokenSecret,
 		},
 		queryQueue:           queue,
 		bucket:               nil,
@@ -126,14 +126,14 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
 //This key is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
-func SetConsumerKey(consumer_key string) {
-	oauthClient.Credentials.Token = consumer_key
+func SetConsumerKey(consumerKey string) {
+	oauthClient.Credentials.Token = consumerKey
 }
 
 //SetConsumerSecret will set the application-specific secret used in the initial OAuth process
 //This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
-func SetConsumerSecret(consumer_secret string) {
-	oauthClient.Credentials.Secret = consumer_secret
+func SetConsumerSecret(consumerSecret string) {
+	oauthClient.Credentials.Secret = consumerSecret
 }
 
 // ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
