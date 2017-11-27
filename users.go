@@ -57,11 +57,17 @@ func (a TwitterApi) GetUserSearch(searchTerm string, v url.Values) (u []User, er
 
 func (a TwitterApi) GetUsersSuggestions(v url.Values) (c []Category, err error) {
 	v = cleanValues(v)
-	// Set other values before calling this method:
-	// page, count, include_entities
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + "/users/suggestions.json", v, &c, _GET, response_ch}
 	return c, (<-response_ch).err
+}
+
+func (a TwitterApi) GetUsersSuggestionsBySlug(slug string, v url.Values) (s Suggestions, err error) {
+	v = cleanValues(v)
+	v.Set("slug", slug)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/users/suggestions/" + slug + ".json", v, &s, _GET, response_ch}
+	return s, (<-response_ch).err
 }
 
 // PostUsersReportSpam : Reports and Blocks a User by screen_name
