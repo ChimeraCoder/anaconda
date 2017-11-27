@@ -75,4 +75,6 @@ type Variant struct {
 
 type Category struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
+	Size int    `json:"size"`
 }
