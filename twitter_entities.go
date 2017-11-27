@@ -78,3 +78,8 @@ type Category struct {
 	Slug string `json:"slug"`
 	Size int    `json:"size"`
 }
+
+type Suggestions struct {
+	Category
+	Users []User
+}
