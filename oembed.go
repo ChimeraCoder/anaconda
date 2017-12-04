@@ -34,9 +34,7 @@ func (a TwitterApi) GetOEmbed(v url.Values) (o OEmbed, err error) {
 
 // Calls GetOEmbed with the corresponding id. Convenience wrapper for GetOEmbed()
 func (a TwitterApi) GetOEmbedId(id int64, v url.Values) (o OEmbed, err error) {
-	if v == nil {
-		v = url.Values{}
-	}
+	v = cleanValues(v)
 	v.Set("id", strconv.FormatInt(id, 10))
 	resp, err := http.Get(a.baseUrlV1() + "/statuses/oembed.json?" + v.Encode())
 	if err != nil {

@@ -56,7 +56,7 @@ func init() {
 	})
 
 	for _, elems := range endpointElems {
-		endpoint := "/" + path.Join(elems...)
+		endpoint := strings.Replace("/"+path.Join(elems...), "_id_", "?id=", -1)
 		filename := filepath.Join(append([]string{"json"}, elems...)...)
 
 		mux.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
@@ -67,11 +67,12 @@ func init() {
 			sourceFilename := filename
 
 			r.ParseForm()
-			specific := sourceFilename + "?" + r.Form.Encode()
+			form := strings.Replace(r.Form.Encode(), "=", "_", -1)
+			form = strings.Replace(form, "&", "_", -1)
+			specific := sourceFilename + "_" + form
 			_, err := os.Stat(specific)
 			if err == nil {
 				sourceFilename = specific
-
 			} else {
 				if err != nil && !os.IsNotExist(err) {
 					fmt.Fprintf(w, "error: %s", err)
@@ -88,7 +89,7 @@ func init() {
 			defer f.Close()
 
 			// TODO not a hack
-			if sourceFilename == "json/statuses/show.json?id=404409873170841600" {
+			if sourceFilename == filepath.Join("json", "statuses", "show.json_id_404409873170841600_tweet_mode_extended") {
 				bts, err := ioutil.ReadAll(f)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -198,27 +199,27 @@ func Test_GetTweet(t *testing.T) {
 	}
 
 	if tweet.Text != tweetText {
-		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweetText)
+		t.Fatalf("Tweet %d contained incorrect text. Received: %s", tweetId, tweet.Text)
 	}
 
 	// Check the entities
 	expectedEntities := anaconda.Entities{Hashtags: []struct {
-		Indices []int
-		Text    string
+		Indices []int  `json:"indices"`
+		Text    string `json:"text"`
 	}{struct {
-		Indices []int
-		Text    string
+		Indices []int  `json:"indices"`
+		Text    string `json:"text"`
 	}{Indices: []int{86, 93}, Text: "golang"}}, Urls: []struct {
-		Indices      []int
-		Url          string
-		Display_url  string
-		Expanded_url string
+		Indices      []int  `json:"indices"`
+		Url          string `json:"url"`
+		Display_url  string `json:"display_url"`
+		Expanded_url string `json:"expanded_url"`
 	}{}, User_mentions: []struct {
-		Name        string
-		Indices     []int
-		Screen_name string
-		Id          int64
-		Id_str      string
+		Name        string `json:"name"`
+		Indices     []int  `json:"indices"`
+		Screen_name string `json:"screen_name"`
+		Id          int64  `json:"id"`
+		Id_str      string `json:"id_str"`
 	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{
 		Id:              303777106628841472,
 		Id_str:          "303777106628841472",
@@ -271,7 +272,7 @@ func Test_GetQuotedTweet(t *testing.T) {
 	}
 
 	if tweet.QuotedStatus.Text != quotedText {
-		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+		t.Fatalf("Expected quoted status text %#v, received %#v", quotedText, tweet.QuotedStatus.Text)
 	}
 }
 
@@ -387,6 +388,18 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 	}
 }
 
+func Test_DMScreenName(t *testing.T) {
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY = 15 * time.Second
@@ -412,16 +425,4 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
-}
-
-func Test_DMScreenName(t *testing.T) {
-	to, err := api.GetSelf(url.Values{})
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
-	if err != nil {
-		t.Error(err)
-		return
-	}
 }

@@ -6,6 +6,7 @@ type User struct {
 	DefaultProfile                 bool     `json:"default_profile"`
 	DefaultProfileImage            bool     `json:"default_profile_image"`
 	Description                    string   `json:"description"`
+	Email                          string   `json:"email"`
 	Entities                       Entities `json:"entities"`
 	FavouritesCount                int      `json:"favourites_count"`
 	FollowRequestSent              bool     `json:"follow_request_sent"`
@@ -13,9 +14,11 @@ type User struct {
 	Following                      bool     `json:"following"`
 	FriendsCount                   int      `json:"friends_count"`
 	GeoEnabled                     bool     `json:"geo_enabled"`
+	HasExtendedProfile             bool     `json:"has_extended_profile"`
 	Id                             int64    `json:"id"`
 	IdStr                          string   `json:"id_str"`
 	IsTranslator                   bool     `json:"is_translator"`
+	IsTranslationEnabled           bool     `json:"is_translation_enabled"`
 	Lang                           string   `json:"lang"` // BCP-47 code of user defined language
 	ListedCount                    int64    `json:"listed_count"`
 	Location                       string   `json:"location"` // User defined location
@@ -39,7 +42,7 @@ type User struct {
 	Status                         *Tweet   `json:"status"` // Only included if the user is a friend
 	StatusesCount                  int64    `json:"statuses_count"`
 	TimeZone                       string   `json:"time_zone"`
-	URL                            string   `json:"url"` // From UTC in seconds
+	URL                            string   `json:"url"`
 	UtcOffset                      int      `json:"utc_offset"`
 	Verified                       bool     `json:"verified"`
 	WithheldInCountries            []string `json:"withheld_in_countries"`

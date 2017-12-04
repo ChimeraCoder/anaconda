@@ -40,6 +40,7 @@
 package anaconda
 
 import (
+	"compress/zlib"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -55,6 +56,8 @@ import (
 const (
 	_GET          = iota
 	_POST         = iota
+	_DELETE       = iota
+	_PUT          = iota
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
@@ -186,8 +189,19 @@ func AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
 	return oauthClient.AuthorizationURL(tempCred, nil), tempCred, nil
 }
 
+// GetCredentials gets the access token using the verifier received with the callback URL and the
+// credentials in the first part of the handshake. GetCredentials implements the third part of the OAuth handshake.
+// The returned url.Values holds the access_token, the access_token_secret, the user_id and the screen_name.
 func GetCredentials(tempCred *oauth.Credentials, verifier string) (*oauth.Credentials, url.Values, error) {
 	return oauthClient.RequestToken(http.DefaultClient, tempCred, verifier)
+}
+
+func defaultValues(v url.Values) url.Values {
+	if v == nil {
+		v = url.Values{}
+	}
+	v.Set("tweet_mode", "extended")
+	return v
 }
 
 func cleanValues(v url.Values) url.Values {
@@ -199,6 +213,7 @@ func cleanValues(v url.Values) url.Values {
 
 // apiGet issues a GET request to the Twitter API and decodes the response JSON to data.
 func (c TwitterApi) apiGet(urlStr string, form url.Values, data interface{}) error {
+	form = defaultValues(form)
 	resp, err := oauthClient.Get(c.HttpClient, c.Credentials, urlStr, form)
 	if err != nil {
 		return err
@@ -217,8 +232,43 @@ func (c TwitterApi) apiPost(urlStr string, form url.Values, data interface{}) er
 	return decodeResponse(resp, data)
 }
 
+// apiDel issues a DELETE request to the Twitter API and decodes the response JSON to data.
+func (c TwitterApi) apiDel(urlStr string, form url.Values, data interface{}) error {
+	resp, err := oauthClient.Delete(c.HttpClient, c.Credentials, urlStr, form)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return decodeResponse(resp, data)
+}
+
+// apiPut issues a PUT request to the Twitter API and decodes the response JSON to data.
+func (c TwitterApi) apiPut(urlStr string, form url.Values, data interface{}) error {
+	resp, err := oauthClient.Put(c.HttpClient, c.Credentials, urlStr, form)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return decodeResponse(resp, data)
+}
+
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
+	// Prevent memory leak in the case where the Response.Body is not used.
+	// As per the net/http package, Response.Body still needs to be closed.
+	defer resp.Body.Close()
+
+	// Twitter returns deflate data despite the client only requesting gzip
+	// data.  net/http automatically handles the latter but not the former:
+	// https://github.com/golang/go/issues/18779
+	if resp.Header.Get("Content-Encoding") == "deflate" {
+		var err error
+		resp.Body, err = zlib.NewReader(resp.Body)
+		if err != nil {
+			return err
+		}
+	}
+
 	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
 	// so we need a special case when decoding the response
 	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") {
@@ -254,6 +304,10 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 		return c.apiGet(urlStr, form, data)
 	case _POST:
 		return c.apiPost(urlStr, form, data)
+	case _DELETE:
+		return c.apiPost(urlStr, form, data)
+	case _PUT:
+		return c.apiPost(urlStr, form, data)
 	default:
 		return fmt.Errorf("HTTP method not yet supported")
 	}
@@ -285,9 +339,9 @@ func (c *TwitterApi) throttledQuery() {
 
 					// If this is a rate-limiting error, re-add the job to the queue
 					// TODO it really should preserve order
-					go func() {
+					go func(q query) {
 						c.queryQueue <- q
-					}()
+					}(q)
 
 					delay := nextWindow.Sub(time.Now())
 					<-time.After(delay)

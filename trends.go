@@ -37,7 +37,7 @@ type TrendLocation struct {
 	Woeid int32  `json:"woeid"`
 }
 
-// https://dev.twitter.com/rest/reference/get/trends/place
+// https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
 func (a TwitterApi) GetTrendsByPlace(id int64, v url.Values) (trendResp TrendResponse, err error) {
 	response_ch := make(chan response)
 	v = cleanValues(v)
@@ -46,15 +46,14 @@ func (a TwitterApi) GetTrendsByPlace(id int64, v url.Values) (trendResp TrendRes
 	return trendResp, (<-response_ch).err
 }
 
-// https://dev.twitter.com/rest/reference/get/trends/available
+// https://developer.twitter.com/en/docs/trends/locations-with-trending-topics/api-reference/get-trends-available
 func (a TwitterApi) GetTrendsAvailableLocations(v url.Values) (locations []TrendLocation, err error) {
 	response_ch := make(chan response)
-	v = cleanValues(v)
 	a.queryQueue <- query{a.baseUrl + "/trends/available.json", v, &locations, _GET, response_ch}
 	return locations, (<-response_ch).err
 }
 
-// https://dev.twitter.com/rest/reference/get/trends/closest
+// https://developer.twitter.com/en/docs/trends/locations-with-trending-topics/api-reference/get-trends-closest
 func (a TwitterApi) GetTrendsClosestLocations(lat float64, long float64, v url.Values) (locations []TrendLocation, err error) {
 	response_ch := make(chan response)
 	v = cleanValues(v)

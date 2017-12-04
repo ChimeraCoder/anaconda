@@ -69,8 +69,24 @@ func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 	return rt, (<-response_ch).err
 }
 
+//UnRetweet will renove retweet Untweets a retweeted status.
+//Returns the original Tweet with retweet details embedded.
+//
+//https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-unretweet-id
+//trim_user: tweet returned in a timeline will include a user object
+//including only the status authors numerical ID.
+func (a TwitterApi) UnRetweet(id int64, trimUser bool) (rt Tweet, err error) {
+	v := url.Values{}
+	if trimUser {
+		v.Set("trim_user", "t")
+	}
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/statuses/unretweet/%d.json", id), v, &rt, _POST, response_ch}
+	return rt, (<-response_ch).err
+}
+
 // Favorite will favorite the status (tweet) with the specified ID.
-// https://dev.twitter.com/docs/api/1.1/post/favorites/create
+// https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-favorites-create
 func (a TwitterApi) Favorite(id int64) (rt Tweet, err error) {
 	v := url.Values{}
 	v.Set("id", fmt.Sprint(id))
@@ -81,7 +97,7 @@ func (a TwitterApi) Favorite(id int64) (rt Tweet, err error) {
 
 // Un-favorites the status specified in the ID parameter as the authenticating user.
 // Returns the un-favorited status in the requested format when successful.
-// https://dev.twitter.com/docs/api/1.1/post/favorites/destroy
+// https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-favorites-destroy
 func (a TwitterApi) Unfavorite(id int64) (rt Tweet, err error) {
 	v := url.Values{}
 	v.Set("id", fmt.Sprint(id))
