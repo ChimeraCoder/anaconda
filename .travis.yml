@@ -21,11 +21,15 @@ before_script:
   - git diff-index --cached --exit-code HEAD
 
 go:
-  - 1.6
   - 1.7
   - 1.8
   - 1.9
   - tip
+
+matrix:
+    include:
+        - os: linux
+          go: 1.6
 
 script:
   - echo $TRAVIS_GO_VERSION
