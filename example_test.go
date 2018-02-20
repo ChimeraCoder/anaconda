@@ -10,14 +10,11 @@ import (
 // Initialize an client library for a given user.
 // This only needs to be done *once* per user
 func ExampleTwitterApi_InitializeClient() {
-	anaconda.SetConsumerKey("your-consumer-key")
-	anaconda.SetConsumerSecret("your-consumer-secret")
-	api := anaconda.NewTwitterApi(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	api := anaconda.NewTwitterApiWithCredentials(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, "your-consumer-key", "your-consumer-secret")
 	fmt.Println(*api.Credentials)
 }
 
 func ExampleTwitterApi_GetSearch() {
-
 	anaconda.SetConsumerKey("your-consumer-key")
 	anaconda.SetConsumerSecret("your-consumer-secret")
 	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
