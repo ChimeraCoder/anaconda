@@ -3,7 +3,7 @@ Anaconda
 
 [![Build Status](https://travis-ci.org/ChimeraCoder/anaconda.svg?branch=master)](https://travis-ci.org/ChimeraCoder/anaconda) [![Build Status](https://ci.appveyor.com/api/projects/status/63pi6csod8bps80i/branch/master?svg=true)](https://ci.appveyor.com/project/ChimeraCoder/anaconda/branch/master) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.svg)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
-Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API. 
+Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API.
 
 Successful API queries return native Go structs that can be used immediately, with no need for type assertions.
 
@@ -17,9 +17,7 @@ Examples
 If you already have the access token (and secret) for your user (Twitter provides this for your own account on the developer portal), creating the client is simple:
 
 ````go
-anaconda.SetConsumerKey("your-consumer-key")
-anaconda.SetConsumerSecret("your-consumer-secret")
-api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+api := anaconda.NewTwitterApiWithCredentials("your-access-token", "your-access-token-secret", "your-consumer-key", "your-consumer-secret")
 ````
 
 ### Queries
@@ -30,9 +28,9 @@ Queries are conducted using a pointer to an authenticated `TwitterApi` struct. I
 searchResult, _ := api.GetSearch("golang", nil)
 for _ , tweet := range searchResult.Statuses {
     fmt.Println(tweet.Text)
-}   
+}
 ````
-Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter. 
+Certain endpoints allow separate optional parameter; if desired, these can be passed as the final parameter.
 
 ````go
 //Perhaps we want 30 values instead of the default 15
