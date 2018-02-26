@@ -58,6 +58,7 @@ const (
 	_POST         = iota
 	_DELETE       = iota
 	_PUT          = iota
+	ClientTimeout = 20
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
@@ -125,6 +126,8 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		Log:                  silentLogger{},
 		baseUrl:              BaseUrl,
 	}
+	//Configure a timeout to HTTP client (DefaultClient has no default timeout, which may deadlock Mutex-wrapped uses of the lib.)
+	c.HttpClient.Timeout = time.Duration(ClientTimeout * time.Second)
 	go c.throttledQuery()
 	return c
 }
@@ -275,7 +278,8 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 
 	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
 	// so we need a special case when decoding the response
-	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") {
+	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") ||
+		strings.Contains(resp.Request.URL.String(), "webhooks") {
 		if resp.StatusCode == 204 {
 			// empty response, don't decode
 			return nil
@@ -309,9 +313,9 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 	case _POST:
 		return c.apiPost(urlStr, form, data)
 	case _DELETE:
-		return c.apiPost(urlStr, form, data)
+		return c.apiDel(urlStr, form, data)
 	case _PUT:
-		return c.apiPost(urlStr, form, data)
+		return c.apiPut(urlStr, form, data)
 	default:
 		return fmt.Errorf("HTTP method not yet supported")
 	}
