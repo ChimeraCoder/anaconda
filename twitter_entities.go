@@ -72,3 +72,14 @@ type Variant struct {
 	ContentType string `json:"content_type"`
 	Url         string `json:"url"`
 }
+
+type Category struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	Size int    `json:"size"`
+}
+
+type Suggestions struct {
+	Category
+	Users []User
+}
