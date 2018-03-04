@@ -61,8 +61,8 @@ type FollowersIdsPage struct {
 	Error error
 }
 
-//GetFriendshipsNoRetweets s a collection of user_ids that the currently authenticated user does not want to receive retweets from.
-//It does not currently support the stringify_ids parameter
+// GetFriendshipsNoRetweets returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
+// It does not currently support the stringify_ids parameter.
 func (a TwitterApi) GetFriendshipsNoRetweets() (ids []int64, err error) {
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + "/friendships/no_retweets/ids.json", nil, &ids, _GET, response_ch}
@@ -93,7 +93,7 @@ func (a TwitterApi) GetFollowersIdsAll(v url.Values) (result chan FollowersIdsPa
 			result <- FollowersIdsPage{c.Ids, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
@@ -185,13 +185,24 @@ func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage
 			result <- FollowersPage{c.Users, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}
 		}
 	}(a, v, result)
 	return result
+}
+
+// GetListMembers implements /lists/members.json
+func (a TwitterApi) GetListMembers(screenName string, listID int64, v url.Values) (c UserCursor, err error) {
+	v = cleanValues(v)
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", screenName)
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 func (a TwitterApi) GetFollowersUser(id int64, v url.Values) (c Cursor, err error) {
@@ -221,7 +232,7 @@ func (a TwitterApi) GetFriendsIdsAll(v url.Values) (result chan FriendsIdsPage) 
 			result <- FriendsIdsPage{c.Ids, err}
 
 			next_cursor = c.Next_cursor_str
-			if next_cursor == "0" {
+			if err != nil || next_cursor == "0" {
 				close(result)
 				break
 			}

@@ -126,6 +126,15 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	}
 }
 
+// Test that creating a TwitterApi client creates a client with non-empty OAuth credentials
+func Test_TwitterApi_NewTwitterApiWithCredentials(t *testing.T) {
+	apiLocal := anaconda.NewTwitterApiWithCredentials(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
+
+	if apiLocal.Credentials == nil {
+		t.Fatalf("Twitter Api client has empty (nil) credentials")
+	}
+}
+
 // Test that the GetSearch function actually works and returns non-empty results
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
@@ -272,7 +281,7 @@ func Test_GetQuotedTweet(t *testing.T) {
 	}
 
 	if tweet.QuotedStatus.Text != quotedText {
-		t.Fatalf("Expected quoted status text %#v, received $#v", quotedText, tweet.QuotedStatus.Text)
+		t.Fatalf("Expected quoted status text %#v, received %#v", quotedText, tweet.QuotedStatus.Text)
 	}
 }
 
@@ -388,6 +397,18 @@ func Test_TwitterApi_TwitterErrorDoesNotExist(t *testing.T) {
 	}
 }
 
+func Test_DMScreenName(t *testing.T) {
+	to, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY = 15 * time.Second
@@ -413,16 +434,4 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
-}
-
-func Test_DMScreenName(t *testing.T) {
-	to, err := api.GetSelf(url.Values{})
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = api.PostDMToScreenName("Test the anaconda lib", to.ScreenName)
-	if err != nil {
-		t.Error(err)
-		return
-	}
 }

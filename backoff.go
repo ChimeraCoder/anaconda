@@ -7,7 +7,7 @@ import (
 )
 
 /*
-Reconnecting(from https://dev.twitter.com/streaming/overview/connecting) :
+Reconnecting(from https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data) :
 
 Once an established connection drops, attempt to reconnect immediately.
 If the reconnect fails, slow down your reconnect attempts according to the type of error experienced:

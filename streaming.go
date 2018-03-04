@@ -122,6 +122,10 @@ type EventTweet struct {
 	TargetObject *Tweet `json:"target_object"`
 }
 
+type EventFollow struct {
+	Event
+}
+
 type TooManyFollow struct {
 	Warning *struct {
 		Code    string `json:"code"`
@@ -209,6 +213,8 @@ func jsonToKnownType(j []byte) interface{} {
 		return *o
 	} else if o := new(Event); jsonAsStruct(j, "/target_object", &o) {
 		return *o
+	} else if o := new(EventFollow); jsonAsStruct(j, "/event", &o) {
+		return *o
 	} else {
 		return nil
 	}
@@ -217,9 +223,9 @@ func jsonToKnownType(j []byte) interface{} {
 func (s *Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
-		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	case _POST:
-		return oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	default:
 	}
 	return nil, fmt.Errorf("HTTP method not yet supported")
