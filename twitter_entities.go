@@ -20,6 +20,10 @@ type Entities struct {
 		Indices []int  `json:"indices"`
 		Text    string `json:"text"`
 	} `json:"hashtags"`
+	Symbols []struct {
+		Indices []int  `json:"indices"`
+		Text    string `json:"text"`
+	} `json:"symbols"`
 	Url           UrlEntity `json:"url"`
 	User_mentions []struct {
 		Name        string `json:"name"`
