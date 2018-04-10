@@ -43,16 +43,15 @@ func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v
 }
 
 // RemoveUserFromList implements /lists/members/destroy.json
-func (a TwitterApi) RemoveUserFromList(screenName string, listID int64, v url.Values) (users []User, err error) {
+func (a TwitterApi) RemoveUserFromList(screenName string, listID int64, v url.Values) (list List, err error) {
 	v = cleanValues(v)
 	v.Set("list_id", strconv.FormatInt(listID, 10))
 	v.Set("screen_name", screenName)
 
-	var addUserToListResponse AddUserToListResponse
-
 	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/lists/members/destroy.json", v, &addUserToListResponse, _POST, response_ch}
-	return addUserToListResponse.Users, (<-response_ch).err
+	a.queryQueue <- query{a.baseUrl + "/lists/members/destroy.json", v, &list, _POST, response_ch}
+	r := <-response_ch
+	return list, r.err
 }
 
 // RemoveMultipleUsersFromList implements /lists/members/destroy_all.json
