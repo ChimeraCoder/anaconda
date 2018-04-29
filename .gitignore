@@ -3,5 +3,4 @@
 *.swn
 conf.sh
 *.patch
-.idea/
 anaconda.test
