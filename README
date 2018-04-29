@@ -3,7 +3,6 @@ Anaconda
 
 [![Build Status](https://travis-ci.org/ChimeraCoder/anaconda.svg?branch=master)](https://travis-ci.org/ChimeraCoder/anaconda) [![Build Status](https://ci.appveyor.com/api/projects/status/63pi6csod8bps80i/branch/master?svg=true)](https://ci.appveyor.com/project/ChimeraCoder/anaconda/branch/master) [![GoDoc](https://godoc.org/github.com/ChimeraCoder/anaconda?status.svg)](https://godoc.org/github.com/ChimeraCoder/anaconda)
 
-
 Anaconda is a simple, transparent Go package for accessing version 1.1 of the Twitter API.
 
 Successful API queries return native Go structs that can be used immediately, with no need for type assertions.
@@ -44,7 +43,6 @@ result, err := api.GetSearch("golang", v)
 (Remember that `url.Values` is equivalent to a `map[string][]string`, if you find that more convenient notation when specifying values). Otherwise, `nil` suffices.
 
 ### Streaming
-
 
 Anaconda supports the Streaming APIs. You can use `PublicStream*` or `UserStream` API methods.
 A go loop is started and gives you a stream that sends `interface{}` objects through it's `chan` `C`
