@@ -26,6 +26,7 @@ type Tweet struct {
 	InReplyToStatusIdStr        string                 `json:"in_reply_to_status_id_str"`
 	InReplyToUserID             int64                  `json:"in_reply_to_user_id"`
 	InReplyToUserIdStr          string                 `json:"in_reply_to_user_id_str"`
+	ReplyCount                  int                    `json:"reply_count"`
 	IsTranslationEnabled        bool                   `json:"is_translation_enabled"`
 	Lang                        string                 `json:"lang"`
 	Place                       Place                  `json:"place"`
