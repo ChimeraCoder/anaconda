@@ -310,6 +310,12 @@ func (a TwitterApi) SiteStream(v url.Values) (stream *Stream) {
 }
 
 func jsonAsStruct(j []byte, path string, obj interface{}) (res bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("recovered:%v\n", err)
+			res = false
+		}
+	}()
 	if v, _ := jsonpointer.Find(j, path); v == nil {
 		return false
 	}
