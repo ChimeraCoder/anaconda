@@ -93,3 +93,11 @@ func (a TwitterApi) PostUsersReportSpamById(id int64, v url.Values) (u User, err
 	a.queryQueue <- query{a.baseUrl + "/users/report_spam.json", v, &u, _POST, response_ch}
 	return u, (<-response_ch).err
 }
+
+// PostAccountUpdateProfile updates the active users profile with the provided values
+func (a TwitterApi) PostAccountUpdateProfile(v url.Values) (u User, err error) {
+	v = cleanValues(v)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/account/update_profile.json", v, &u, _POST, response_ch}
+	return u, (<-response_ch).err
+}
