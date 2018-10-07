@@ -409,6 +409,64 @@ func Test_DMScreenName(t *testing.T) {
 	}
 }
 
+// This assumes that the current user has at least one list, and the first list includes the current user as a member.
+func Test_RemoveUserFromList(t *testing.T) {
+	user, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Fatalf("GetSelf returned error: %s", err.Error())
+	}
+
+	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	if err != nil {
+		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
+	}
+
+	if len(lists) == 0 {
+		t.Fatalf("GetListsOwnedBy returned no lists")
+	}
+
+	list, err := api.RemoveUserFromList(user.ScreenName, lists[0].Id, nil)
+	if err != nil {
+		t.Fatalf("RemoveUserFromList returned error: %s", err.Error())
+	}
+
+	// If all attributes are equal to the zero value for that type,
+	// then the original value was not valid
+	if reflect.DeepEqual(list, anaconda.List{}) {
+		t.Fatalf("Received %#v", list)
+	}
+}
+
+// This assumes that the current user has at least one list, and the first list includes the current user as a member.
+func Test_RemoveMultipleUsersFromList(t *testing.T) {
+	user, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Fatalf("GetSelf returned error: %s", err.Error())
+	}
+
+	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	if err != nil {
+		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
+	}
+
+	if len(lists) == 0 {
+		t.Fatalf("GetListsOwnedBy returned no lists")
+	}
+
+	users := []string{user.ScreenName}
+
+	list, err := api.RemoveMultipleUsersFromList(users, lists[0].Id, nil)
+	if err != nil {
+		t.Fatalf("RemoveMultipleUsersFromList returned error: %s", err.Error())
+	}
+
+	// If all attributes are equal to the zero value for that type,
+	// then the original value was not valid
+	if reflect.DeepEqual(list, anaconda.List{}) {
+		t.Fatalf("Received %#v", list)
+	}
+}
+
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY = 15 * time.Second
