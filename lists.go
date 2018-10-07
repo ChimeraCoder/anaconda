@@ -42,6 +42,30 @@ func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v
 	return list, r.err
 }
 
+// RemoveUserFromList implements /lists/members/destroy.json
+func (a TwitterApi) RemoveUserFromList(screenName string, listID int64, v url.Values) (list List, err error) {
+	v = cleanValues(v)
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", screenName)
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members/destroy.json", v, &list, _POST, response_ch}
+	r := <-response_ch
+	return list, r.err
+}
+
+// RemoveMultipleUsersFromList implements /lists/members/destroy_all.json
+func (a TwitterApi) RemoveMultipleUsersFromList(screenNames []string, listID int64, v url.Values) (list List, err error) {
+	v = cleanValues(v)
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", strings.Join(screenNames, ","))
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members/destroy_all.json", v, &list, _POST, response_ch}
+	r := <-response_ch
+	return list, r.err
+}
+
 // GetListsOwnedBy implements /lists/ownerships.json
 // screen_name, count, and cursor are all optional values
 func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, err error) {
