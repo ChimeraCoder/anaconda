@@ -43,7 +43,6 @@ import (
 	"compress/zlib"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -291,17 +290,6 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 		return newApiError(resp)
 	}
 	return json.NewDecoder(resp.Body).Decode(data)
-}
-
-func NewApiError(resp *http.Response) *ApiError {
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	return &ApiError{
-		StatusCode: resp.StatusCode,
-		Header:     resp.Header,
-		Body:       string(body),
-		URL:        resp.Request.URL,
-	}
 }
 
 //query executes a query to the specified url, sending the values specified by form, and decodes the response JSON to data
