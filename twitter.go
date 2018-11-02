@@ -31,7 +31,7 @@
 //
 //Endpoints
 //
-//Anaconda implements most of the endpoints defined in the Twitter API documentation: https://dev.twitter.com/docs/api/1.1.
+//Anaconda implements most of the endpoints defined in the Twitter API documentation: https://developer.twitter.com/en/docs
 //For clarity, in most cases, the function name is simply the name of the HTTP method and the endpoint (e.g., the endpoint `GET /friendships/incoming` is provided by the function `GetFriendshipsIncoming`).
 //
 //In a few cases, a shortened form has been chosen to make life easier (for example, retweeting is simply the function `Retweet`)
@@ -40,6 +40,7 @@
 package anaconda
 
 import (
+	"bytes"
 	"compress/zlib"
 	"encoding/json"
 	"fmt"
@@ -58,6 +59,7 @@ const (
 	_POST         = iota
 	_DELETE       = iota
 	_PUT          = iota
+	_GETBEARER    = iota
 	ClientTimeout = 20
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
@@ -71,6 +73,7 @@ var (
 type TwitterApi struct {
 	oauthClient          oauth.Client
 	Credentials          *oauth.Credentials
+	bearer               string
 	queryQueue           chan query
 	bucket               *tokenbucket.Bucket
 	returnRateLimitError bool
@@ -84,6 +87,13 @@ type TwitterApi struct {
 	// used for testing
 	// defaults to BaseUrl
 	baseUrl string
+
+	// environment name used by Premium Account Activity API
+	// Leave nil for Enterprise Account Activity API
+	env string
+
+	// Prefix used for Account Activity API.
+	activityUrl string
 }
 
 type query struct {
@@ -125,6 +135,8 @@ func NewTwitterApi(access_token string, access_token_secret string) *TwitterApi 
 		HttpClient:           http.DefaultClient,
 		Log:                  silentLogger{},
 		baseUrl:              BaseUrl,
+		env:                  "",
+		activityUrl:          BaseUrl + "/account_activity/",
 	}
 	//Configure a timeout to HTTP client (DefaultClient has no default timeout, which may deadlock Mutex-wrapped uses of the lib.)
 	c.HttpClient.Timeout = time.Duration(ClientTimeout * time.Second)
@@ -142,13 +154,13 @@ func NewTwitterApiWithCredentials(access_token string, access_token_secret strin
 }
 
 //SetConsumerKey will set the application-specific consumer_key used in the initial OAuth process
-//This key is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
+//This key is listed on https://developer.twitter.com/en/apps/YOUR_APP_ID/show
 func SetConsumerKey(consumer_key string) {
 	oauthCredentials.Token = consumer_key
 }
 
 //SetConsumerSecret will set the application-specific secret used in the initial OAuth process
-//This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
+//This secret is listed on https://deeloperv.twitter.com/en/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
 	oauthCredentials.Secret = consumer_secret
 }
@@ -183,6 +195,16 @@ func (c *TwitterApi) GetDelay() time.Duration {
 // SetBaseUrl is experimental and may be removed in future releases.
 func (c *TwitterApi) SetBaseUrl(baseUrl string) {
 	c.baseUrl = baseUrl
+	c.SetEnv(c.env) //propagate to activityUrl
+}
+
+// SetEnv sets the environment name used by Premium Account Activity API.
+func (c *TwitterApi) SetEnv(env string) {
+	c.env = env
+	c.activityUrl = c.baseUrl + "/account_activity/"
+	if env != "" {
+		c.activityUrl = c.activityUrl + "all/" + env + "/"
+	}
 }
 
 //AuthorizationURL generates the authorization URL for the first part of the OAuth handshake.
@@ -259,6 +281,41 @@ func (c TwitterApi) apiPut(urlStr string, form url.Values, data interface{}) err
 	return decodeResponse(resp, data)
 }
 
+// apiGetBearer issues a GET request with a bearer token. Done outside the oauth library because
+// it doesn't support bearer tokens currently.
+func (c TwitterApi) apiGetBearer(urlStr string, form url.Values, data interface{}) error {
+	// form is ignored
+	req, _ := http.NewRequest("GET", urlStr, nil)
+	if c.bearer == "" {
+		c.bearer, _ = c.GetBearerToken()
+	}
+
+	req.Header.Add("Authorization", "Bearer "+c.bearer)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return decodeResponse(resp, data)
+}
+
+func (a TwitterApi) GetBearerToken() (tok string, err error) {
+	var bt BearerToken
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", "https://api.twitter.com/oauth2/token", bytes.NewReader([]byte("grant_type=client_credentials")))
+	req.SetBasicAuth(a.oauthClient.Credentials.Token, a.oauthClient.Credentials.Secret)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bodyText, &bt)
+
+	return bt.Token, err //Note that it is still in URL encoded form
+}
+
 // decodeResponse decodes the JSON response from the Twitter API.
 func decodeResponse(resp *http.Response, data interface{}) error {
 	// Prevent memory leak in the case where the Response.Body is not used.
@@ -279,7 +336,8 @@ func decodeResponse(resp *http.Response, data interface{}) error {
 	// according to dev.twitter.com, chunked upload append returns HTTP 2XX
 	// so we need a special case when decoding the response
 	if strings.HasSuffix(resp.Request.URL.String(), "upload.json") ||
-		strings.Contains(resp.Request.URL.String(), "webhooks") {
+		strings.Contains(resp.Request.URL.String(), "webhooks") ||
+		strings.Contains(resp.Request.URL.String(), "subscriptions") {
 		if resp.StatusCode == 204 {
 			// empty response, don't decode
 			return nil
@@ -316,6 +374,8 @@ func (c TwitterApi) execQuery(urlStr string, form url.Values, data interface{}, 
 		return c.apiDel(urlStr, form, data)
 	case _PUT:
 		return c.apiPut(urlStr, form, data)
+	case _GETBEARER:
+		return c.apiGetBearer(urlStr, form, data)
 	default:
 		return fmt.Errorf("HTTP method not yet supported")
 	}
