@@ -467,6 +467,39 @@ func Test_RemoveMultipleUsersFromList(t *testing.T) {
 	}
 }
 
+// This assumes that the dm events list is not empty for the user
+func Test_GetDMEventList(t *testing.T) {
+	v := url.Values{}
+	result, err := api.GetDMEventList(v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if result.DMEvents == nil || len(result.DMEvents) == 0 {
+		t.Fatalf("Received invalid value for DMEvents : %v", result.DMEvents)
+	}
+}
+
+// This assumes that the dm event for given dmID exists in json response
+func Test_GetDMEventShow(t *testing.T) {
+	dmID := "1052471375942709253"
+
+	result, err := api.GetDMEventShow(dmID)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if result.DMEvent == nil {
+		t.Fatalf("Received invalid value for DMEvent : %v", result.DMEvent)
+	}
+
+	if result.DMEvent.Id != dmID {
+		t.Fatalf("Received invalid value for id : %s", result.DMEvent.Id)
+	}
+}
+
 // Test that the client can be used to throttle to an arbitrary duration
 func Test_TwitterApi_Throttling(t *testing.T) {
 	const MIN_DELAY = 15 * time.Second

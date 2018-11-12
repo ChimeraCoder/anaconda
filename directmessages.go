@@ -65,3 +65,19 @@ func (a TwitterApi) IndicateTyping(id int64) (err error) {
 	a.queryQueue <- query{a.baseUrl + "/direct_messages/indicate_typing.json", v, nil, _POST, response_ch}
 	return (<-response_ch).err
 }
+
+// https://developer.twitter.com/en/docs/direct-messages/sending-and-receiving/api-reference/list-events
+func (a TwitterApi) GetDMEventList(v url.Values) (eventList DMEventList, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/direct_messages/events/list.json", v, &eventList, _GET, response_ch}
+	return eventList, (<-response_ch).err
+}
+
+// https://developer.twitter.com/en/docs/direct-messages/sending-and-receiving/api-reference/get-event
+func (a TwitterApi) GetDMEventShow(id string) (eventData DMEventData, err error) {
+	v := url.Values{}
+	v.Set("id", id)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/direct_messages/events/show.json", v, &eventData, _GET, response_ch}
+	return eventData, (<-response_ch).err
+}

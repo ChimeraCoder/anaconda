@@ -1,0 +1,30 @@
+{
+  "event": {
+    "type": "message_create",
+    "id": "1052471375942709253",
+    "created_timestamp": "1539763704654",
+    "message_create": {
+      "target": {
+        "recipient_id": "382807713"
+      },
+      "sender_id": "3108078572",
+      "source_app_id": "9339052",
+      "message_data": {
+        "text": "text",
+        "entities": {
+          "hashtags": [],
+          "symbols": [],
+          "user_mentions": [],
+          "urls": []
+        }
+      }
+    }
+  },
+  "apps": {
+    "9339052": {
+      "id": "9339052",
+      "name": "anaconda-testing",
+      "url": "http://www.anaconda-testing.com"
+    }
+  }
+}
