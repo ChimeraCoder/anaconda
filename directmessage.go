@@ -19,8 +19,8 @@ type DMEventData struct {
 }
 
 type DMEventList struct {
-	NextCursor string `json:"next_cursor"`
-	DMEvents []DMEvent `json:"events"`
+	NextCursor string    `json:"next_cursor"`
+	DMEvents   []DMEvent `json:"events"`
 }
 
 type DMEvent struct {
@@ -46,8 +46,8 @@ type MessageCreate struct {
 }
 
 type MessageData struct {
-	Text     string   `json:"text"`
-	Entities Entities `json:"entities"`
+	Text               string   `json:"text"`
+	Entities           Entities `json:"entities"`
 	QuickReplyResponse *struct {
 		Type     string `json:"type"`
 		Metadata string `json:"metadata"`
