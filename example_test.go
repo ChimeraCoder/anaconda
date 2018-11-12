@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ChimeraCoder/anaconda"
+	"net/url"
 )
 
 // Initialize an client library for a given user.
@@ -56,4 +57,37 @@ func ExampleTwitterApi_GetFollowersListAll() {
 		//Print the current page of followers
 		fmt.Println(page.Followers)
 	}
+}
+
+func ExampleTwitterApi_GetDMEventList() {
+	anaconda.SetConsumerKey("your-consumer-key")
+	anaconda.SetConsumerSecret("your-consumer-secret")
+	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+
+	v := url.Values{}
+	v.Set("count", "50")
+	v.Set("cursor", "next-cursor")
+	result, err := api.GetDMEventList(v)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(result.NextCursor)
+	for _, event := range result.DMEvents {
+		fmt.Println(event.Id)
+		fmt.Println(event.MessageCreate.MessageData.Text)
+	}
+}
+
+func ExampleTwitterApi_GetDMEventShow() {
+	anaconda.SetConsumerKey("your-consumer-key")
+	anaconda.SetConsumerSecret("your-consumer-secret")
+	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+
+	result, err := api.GetDMEventShow("your-event-id")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(result)
 }

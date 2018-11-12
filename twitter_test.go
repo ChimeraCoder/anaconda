@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/ChimeraCoder/anaconda"
+	"encoding/json"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -492,4 +493,27 @@ func Test_TwitterApi_Throttling(t *testing.T) {
 
 	// Reset the delay to its previous value
 	api.SetDelay(oldDelay)
+}
+
+func Test_GetDMEventList(t *testing.T) {
+	v := url.Values{}
+	result, err := api.GetDMEventList(v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	bytes, err := json.Marshal(result)
+	fmt.Println(string(bytes))
+}
+
+func Test_GetDMEventShow(t *testing.T) {
+	result, err := api.GetDMEventShow("1055367239690375172")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	bytes, err := json.Marshal(result)
+	fmt.Println(string(bytes))
 }
