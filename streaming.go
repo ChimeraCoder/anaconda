@@ -245,7 +245,7 @@ func (s *Stream) loop(urlStr string, v url.Values, method int) {
 				resp.StatusCode = 420
 			} else {
 				s.api.Log.Criticalf("Cannot request stream : %s", err)
-				return
+				continue
 			}
 		}
 		s.api.Log.Debugf("Response status=%s code=%d", resp.Status, resp.StatusCode)
