@@ -19,18 +19,18 @@ type Tweet struct {
 	FilterLevel                 string                 `json:"filter_level"`
 	FullText                    string                 `json:"full_text"`
 	HasExtendedProfile          bool                   `json:"has_extended_profile"`
-	Id                          int64                  `json:"id"`
-	IdStr                       string                 `json:"id_str"`
+	ID                          int64                  `json:"id"`
+	IDStr                       string                 `json:"id_str"`
 	InReplyToScreenName         string                 `json:"in_reply_to_screen_name"`
 	InReplyToStatusID           int64                  `json:"in_reply_to_status_id"`
-	InReplyToStatusIdStr        string                 `json:"in_reply_to_status_id_str"`
+	InReplyToStatusIDStr        string                 `json:"in_reply_to_status_id_str"`
 	InReplyToUserID             int64                  `json:"in_reply_to_user_id"`
-	InReplyToUserIdStr          string                 `json:"in_reply_to_user_id_str"`
+	InReplyToUserIDStr          string                 `json:"in_reply_to_user_id_str"`
 	IsTranslationEnabled        bool                   `json:"is_translation_enabled"`
 	Lang                        string                 `json:"lang"`
 	Place                       Place                  `json:"place"`
 	QuotedStatusID              int64                  `json:"quoted_status_id"`
-	QuotedStatusIdStr           string                 `json:"quoted_status_id_str"`
+	QuotedStatusIDStr           string                 `json:"quoted_status_id_str"`
 	QuotedStatus                *Tweet                 `json:"quoted_status"`
 	PossiblySensitive           bool                   `json:"possibly_sensitive"`
 	PossiblySensitiveAppealable bool                   `json:"possibly_sensitive_appealable"`
@@ -58,8 +58,8 @@ func (t Tweet) CreatedAtTime() (time.Time, error) {
 
 // Could also use User, since the fields match, but only these fields are possible in Contributor
 type Contributor struct {
-	Id         int64  `json:"id"`
-	IdStr      string `json:"id_str"`
+	ID         int64  `json:"id"`
+	IDStr      string `json:"id_str"`
 	ScreenName string `json:"screen_name"`
 }
 

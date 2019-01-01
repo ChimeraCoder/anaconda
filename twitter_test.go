@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChimeraCoder/anaconda"
+	"github.com/LukeSugiura/anaconda"
 )
 
 var CONSUMER_KEY = os.Getenv("CONSUMER_KEY")
@@ -218,25 +218,25 @@ func Test_GetTweet(t *testing.T) {
 	}{struct {
 		Indices []int  `json:"indices"`
 		Text    string `json:"text"`
-	}{Indices: []int{86, 93}, Text: "golang"}}, Urls: []struct {
-		Indices      []int  `json:"indices"`
-		Url          string `json:"url"`
-		Display_url  string `json:"display_url"`
-		Expanded_url string `json:"expanded_url"`
-	}{}, User_mentions: []struct {
-		Name        string `json:"name"`
+	}{Indices: []int{86, 93}, Text: "golang"}}, URLs: []struct {
 		Indices     []int  `json:"indices"`
-		Screen_name string `json:"screen_name"`
-		Id          int64  `json:"id"`
-		Id_str      string `json:"id_str"`
+		URL         string `json:"url"`
+		DisplayURL  string `json:"display_url"`
+		ExpandedURL string `json:"expanded_url"`
+	}{}, UserMentions: []struct {
+		Name       string `json:"name"`
+		Indices    []int  `json:"indices"`
+		ScreenName string `json:"screen_name"`
+		ID         int64  `json:"id"`
+		IDStr      string `json:"id_str"`
 	}{}, Media: []anaconda.EntityMedia{anaconda.EntityMedia{
-		Id:              303777106628841472,
-		Id_str:          "303777106628841472",
-		Media_url:       "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
-		Media_url_https: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
-		Url:             "http://t.co/eSq3ROwu",
-		Display_url:     "pic.twitter.com/eSq3ROwu",
-		Expanded_url:    "http://twitter.com/go_nuts/status/303777106620452864/photo/1",
+		ID:            303777106628841472,
+		IDStr:         "303777106628841472",
+		MediaURL:      "http://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		MediaURLHTTPS: "https://pbs.twimg.com/media/BDc7q0OCEAAoe2C.jpg",
+		URL:           "http://t.co/eSq3ROwu",
+		DisplayURL:    "pic.twitter.com/eSq3ROwu",
+		ExpandedURL:   "http://twitter.com/go_nuts/status/303777106620452864/photo/1",
 		Sizes: anaconda.MediaSizes{Medium: anaconda.MediaSize{W: 600,
 			H:      450,
 			Resize: "fit"},
@@ -276,8 +276,8 @@ func Test_GetQuotedTweet(t *testing.T) {
 		t.Fatalf("Expected quoted status %d, received %d", quotedID, tweet.QuotedStatusID)
 	}
 
-	if tweet.QuotedStatusIdStr != strconv.Itoa(quotedID) {
-		t.Fatalf("Expected quoted status %d (as string), received %s", quotedID, tweet.QuotedStatusIdStr)
+	if tweet.QuotedStatusIDStr != strconv.Itoa(quotedID) {
+		t.Fatalf("Expected quoted status %d (as string), received %s", quotedID, tweet.QuotedStatusIDStr)
 	}
 
 	if tweet.QuotedStatus.Text != quotedText {
@@ -416,7 +416,7 @@ func Test_RemoveUserFromList(t *testing.T) {
 		t.Fatalf("GetSelf returned error: %s", err.Error())
 	}
 
-	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	lists, err := api.GetListsOwnedBy(user.ID, nil)
 	if err != nil {
 		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
 	}
@@ -425,7 +425,7 @@ func Test_RemoveUserFromList(t *testing.T) {
 		t.Fatalf("GetListsOwnedBy returned no lists")
 	}
 
-	list, err := api.RemoveUserFromList(user.ScreenName, lists[0].Id, nil)
+	list, err := api.RemoveUserFromList(user.ScreenName, lists[0].ID, nil)
 	if err != nil {
 		t.Fatalf("RemoveUserFromList returned error: %s", err.Error())
 	}
@@ -444,7 +444,7 @@ func Test_RemoveMultipleUsersFromList(t *testing.T) {
 		t.Fatalf("GetSelf returned error: %s", err.Error())
 	}
 
-	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	lists, err := api.GetListsOwnedBy(user.ID, nil)
 	if err != nil {
 		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
 	}
@@ -455,7 +455,7 @@ func Test_RemoveMultipleUsersFromList(t *testing.T) {
 
 	users := []string{user.ScreenName}
 
-	list, err := api.RemoveMultipleUsersFromList(users, lists[0].Id, nil)
+	list, err := api.RemoveMultipleUsersFromList(users, lists[0].ID, nil)
 	if err != nil {
 		t.Fatalf("RemoveMultipleUsersFromList returned error: %s", err.Error())
 	}

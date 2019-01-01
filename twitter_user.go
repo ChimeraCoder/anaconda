@@ -15,8 +15,8 @@ type User struct {
 	FriendsCount                   int      `json:"friends_count"`
 	GeoEnabled                     bool     `json:"geo_enabled"`
 	HasExtendedProfile             bool     `json:"has_extended_profile"`
-	Id                             int64    `json:"id"`
-	IdStr                          string   `json:"id_str"`
+	ID                             int64    `json:"id"`
+	IDStr                          string   `json:"id_str"`
 	IsTranslator                   bool     `json:"is_translator"`
 	IsTranslationEnabled           bool     `json:"is_translation_enabled"`
 	Lang                           string   `json:"lang"` // BCP-47 code of user defined language
@@ -26,11 +26,11 @@ type User struct {
 	Notifications                  bool     `json:"notifications"`
 	ProfileBackgroundColor         string   `json:"profile_background_color"`
 	ProfileBackgroundImageURL      string   `json:"profile_background_image_url"`
-	ProfileBackgroundImageUrlHttps string   `json:"profile_background_image_url_https"`
+	ProfileBackgroundImageURLHTTPS string   `json:"profile_background_image_url_https"`
 	ProfileBackgroundTile          bool     `json:"profile_background_tile"`
 	ProfileBannerURL               string   `json:"profile_banner_url"`
 	ProfileImageURL                string   `json:"profile_image_url"`
-	ProfileImageUrlHttps           string   `json:"profile_image_url_https"`
+	ProfileImageURLHTTPS           string   `json:"profile_image_url_https"`
 	ProfileLinkColor               string   `json:"profile_link_color"`
 	ProfileSidebarBorderColor      string   `json:"profile_sidebar_border_color"`
 	ProfileSidebarFillColor        string   `json:"profile_sidebar_fill_color"`

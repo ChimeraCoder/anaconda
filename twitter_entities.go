@@ -1,51 +1,51 @@
 package anaconda
 
-type UrlEntity struct {
-	Urls []struct {
-		Indices      []int  `json:"indices"`
-		Url          string `json:"url"`
-		Display_url  string `json:"display_url"`
-		Expanded_url string `json:"expanded_url"`
+type URLEntity struct {
+	URLs []struct {
+		Indices     []int  `json:"indices"`
+		URL         string `json:"url"`
+		DisplayURL  string `json:"display_url"`
+		ExpandedURL string `json:"expanded_url"`
 	} `json:"urls"`
 }
 
 type Entities struct {
-	Urls []struct {
-		Indices      []int  `json:"indices"`
-		Url          string `json:"url"`
-		Display_url  string `json:"display_url"`
-		Expanded_url string `json:"expanded_url"`
+	URLs []struct {
+		Indices     []int  `json:"indices"`
+		URL         string `json:"url"`
+		DisplayURL  string `json:"display_url"`
+		ExpandedURL string `json:"expanded_url"`
 	} `json:"urls"`
 	Hashtags []struct {
 		Indices []int  `json:"indices"`
 		Text    string `json:"text"`
 	} `json:"hashtags"`
-	Url           UrlEntity `json:"url"`
-	User_mentions []struct {
-		Name        string `json:"name"`
-		Indices     []int  `json:"indices"`
-		Screen_name string `json:"screen_name"`
-		Id          int64  `json:"id"`
-		Id_str      string `json:"id_str"`
+	URL          URLEntity `json:"url"`
+	UserMentions []struct {
+		Name       string `json:"name"`
+		Indices    []int  `json:"indices"`
+		ScreenName string `json:"screen_name"`
+		ID         int64  `json:"id"`
+		IDStr      string `json:"id_str"`
 	} `json:"user_mentions"`
 	Media []EntityMedia `json:"media"`
 }
 
 type EntityMedia struct {
-	Id                   int64      `json:"id"`
-	Id_str               string     `json:"id_str"`
-	Media_url            string     `json:"media_url"`
-	Media_url_https      string     `json:"media_url_https"`
-	Url                  string     `json:"url"`
-	Display_url          string     `json:"display_url"`
-	Expanded_url         string     `json:"expanded_url"`
-	Sizes                MediaSizes `json:"sizes"`
-	Source_status_id     int64      `json:"source_status_id"`
-	Source_status_id_str string     `json:"source_status_id_str"`
-	Type                 string     `json:"type"`
-	Indices              []int      `json:"indices"`
-	VideoInfo            VideoInfo  `json:"video_info"`
-	ExtAltText           string     `json:"ext_alt_text"`
+	ID                int64      `json:"id"`
+	IDStr             string     `json:"id_str"`
+	MediaURL          string     `json:"media_url"`
+	MediaURLHTTPS     string     `json:"media_url_https"`
+	URL               string     `json:"url"`
+	DisplayURL        string     `json:"display_url"`
+	ExpandedURL       string     `json:"expanded_url"`
+	Sizes             MediaSizes `json:"sizes"`
+	SourceStatusID    int64      `json:"source_status_id"`
+	SourceStatusIDStr string     `json:"source_status_id_str"`
+	Type              string     `json:"type"`
+	Indices           []int      `json:"indices"`
+	VideoInfo         VideoInfo  `json:"video_info"`
+	ExtAltText        string     `json:"ext_alt_text"`
 }
 
 type MediaSizes struct {
@@ -70,7 +70,7 @@ type VideoInfo struct {
 type Variant struct {
 	Bitrate     int    `json:"bitrate"`
 	ContentType string `json:"content_type"`
-	Url         string `json:"url"`
+	URL         string `json:"url"`
 }
 
 type Category struct {

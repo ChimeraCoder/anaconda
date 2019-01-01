@@ -3,37 +3,52 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:1632705b0fa9266d58506dfb2bf26dc502709c3911d5660cf278503fcfadf6ac"
   name = "github.com/ChimeraCoder/tokenbucket"
   packages = ["."]
+  pruneopts = ""
   revision = "c5a927568de7aad8a58127d80bcd36ca4e71e454"
 
 [[projects]]
   branch = "master"
+  digest = "1:650520e175941762d4781168477eda2561c4e24fb0b0578761dda5b0e1382237"
   name = "github.com/azr/backoff"
   packages = ["."]
+  pruneopts = ""
   revision = "53511d3c733003985b0b76f733df1f4d0095ee6a"
 
 [[projects]]
   branch = "master"
+  digest = "1:5a57f88a1196908f330b6b10340aaa34b5594183e80a7659cac1bfbb3a88d84e"
   name = "github.com/dustin/go-jsonpointer"
   packages = ["."]
+  pruneopts = ""
   revision = "ba0abeacc3dcca5b9b20f31509c46794edbc9965"
 
 [[projects]]
   branch = "master"
+  digest = "1:9140f1215e69e5b5f05ee4faf473f8532f8a62b2588c55f6ab4f467c31b5a5f8"
   name = "github.com/dustin/gojson"
   packages = ["."]
+  pruneopts = ""
   revision = "2e71ec9dd5adce3b168cd0dbde03b5cc04951c30"
 
 [[projects]]
   branch = "master"
+  digest = "1:9e250668f2ed281dd8c318d2a7a5a4a927d6eb8537699c1b2c751a9b63948177"
   name = "github.com/garyburd/go-oauth"
   packages = ["oauth"]
+  pruneopts = ""
   revision = "166ce8d672783fbb5a72247c3cf459267717e1ec"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e645e975b86556d43a1fb9a6aacbaa500a8549d3262d8421baca41f04ae42f4f"
+  input-imports = [
+    "github.com/ChimeraCoder/tokenbucket",
+    "github.com/azr/backoff",
+    "github.com/dustin/go-jsonpointer",
+    "github.com/garyburd/go-oauth/oauth",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
