@@ -15,6 +15,7 @@ type Trend struct {
 	Query           string `json:"query"`
 	Url             string `json:"url"`
 	PromotedContent string `json:"promoted_content"`
+	TweetVolume     string `json:"tweet_volume"`
 }
 
 type TrendResponse struct {
