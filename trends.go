@@ -14,6 +14,7 @@ type Trend struct {
 	Name            string `json:"name"`
 	Query           string `json:"query"`
 	Url             string `json:"url"`
+	TweetVolume     *int64 `json:"tweet_volume"`
 	PromotedContent string `json:"promoted_content"`
 }
 
