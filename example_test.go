@@ -27,6 +27,30 @@ func ExampleTwitterApi_GetSearch() {
 	}
 }
 
+func ExampleTwitterApi_PublicStreamFilter() {
+	anaconda.SetConsumerKey("your-consumer-key")
+	anaconda.SetConsumerSecret("your-consumer-secret")
+	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
+
+	filter := map[string][]string{
+		"track": []string{"#anaconda"},
+		// Other options
+		// "follow": []string{},
+		// "locations": []string {},
+	}
+	tweetStream := api.PublicStreamFilter(filter)
+
+	for t := range tweetStream.C {
+		switch v := t.(type) {
+		case anaconda.Tweet:
+			fmt.Printf("%-15s: %s\n", v.User.ScreenName, v.Text)
+		default:
+			fmt.Printf("Got Something other than a tweet %s\n", v)
+		}
+	}
+
+}
+
 // Throttling queries can easily be handled in the background, automatically
 func ExampleTwitterApi_Throttling() {
 	api := anaconda.NewTwitterApi("your-access-token", "your-access-token-secret")
