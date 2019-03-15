@@ -258,7 +258,7 @@ func (a TwitterApi) FollowUserId(userId int64, v url.Values) (user User, err err
 	return a.postFriendshipsCreateImpl(v)
 }
 
-// FollowUserId follows the user with the specified screenname (username).
+// FollowUser follows the user with the specified screenname (username).
 // This implements the /friendships/create endpoint, though the function name
 // uses the terminology 'follow' as this is most consistent with colloquial Twitter terminology.
 func (a TwitterApi) FollowUser(screenName string) (user User, err error) {
