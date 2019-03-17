@@ -54,12 +54,12 @@ func newApiError(resp *http.Response) *ApiError {
 	}
 }
 
-// ApiError supports the error interface
+// Error supports the error interface
 func (aerr ApiError) Error() string {
 	return fmt.Sprintf("Get %s returned status %d, %s", aerr.URL, aerr.StatusCode, aerr.Body)
 }
 
-// Check to see if an error is a Rate Limiting error. If so, find the next available window in the header.
+// RateLimitCheck checks to see if an error is a Rate Limiting error. If so, find the next available window in the header.
 // Use like so:
 //
 //    if aerr, ok := err.(*ApiError); ok {
