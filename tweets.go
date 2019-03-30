@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+type RetweetersIdsPage struct {
+	Ids   []int64
+	Error error
+}
+
 func (a TwitterApi) GetTweet(id int64, v url.Values) (tweet Tweet, err error) {
 	v = cleanValues(v)
 	v.Set("id", strconv.FormatInt(id, 10))
@@ -34,6 +39,40 @@ func (a TwitterApi) GetRetweets(id int64, v url.Values) (tweets []Tweet, err err
 	response_ch := make(chan response)
 	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/statuses/retweets/%d.json", id), v, &tweets, _GET, response_ch}
 	return tweets, (<-response_ch).err
+}
+
+// Like GetRetweetersIdsList, but returns a channel instead of a cursor and pre-fetches the remaining results
+// This channel is closed once all values have been fetched
+func (a TwitterApi) GetRetweetersIdsListAll(v url.Values) (result chan RetweetersIdsPage) {
+	result = make(chan RetweetersIdsPage)
+
+	v = cleanValues(v)
+	go func(a TwitterApi, v url.Values, result chan RetweetersIdsPage) {
+		// Cursor defaults to the first page ("-1")
+		next_cursor := "-1"
+		for {
+			v.Set("cursor", next_cursor)
+			c, err := a.GetRetweetersIdsList(v)
+
+			// throttledQuery() handles all rate-limiting errors
+			// if GetFollowersList() returns an error, it must be a different kind of error
+
+			result <- RetweetersIdsPage{c.Ids, err}
+
+			next_cursor = c.Next_cursor_str
+			if err != nil || next_cursor == "0" {
+				close(result)
+				break
+			}
+		}
+	}(a, v, result)
+	return result
+}
+
+func (a TwitterApi) GetRetweetersIdsList(v url.Values) (c Cursor, err error) {
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/statuses/retweeters/ids.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
 }
 
 //PostTweet will create a tweet with the specified status message
