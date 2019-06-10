@@ -147,10 +147,20 @@ func SetConsumerKey(consumer_key string) {
 	oauthCredentials.Token = consumer_key
 }
 
+//GetConsumerKey will return the consumer key set by SetConsumerSecret.
+func GetConsumerKey() string {
+	return oauthClient.Credentials.Token
+}
+
 //SetConsumerSecret will set the application-specific secret used in the initial OAuth process
 //This secret is listed on https://dev.twitter.com/apps/YOUR_APP_ID/show
 func SetConsumerSecret(consumer_secret string) {
 	oauthCredentials.Secret = consumer_secret
+}
+
+//GetConsumerSecret will return the consumer secret set by SetConsumerKey.
+func GetConsumerSecret() string {
+	return oauthClient.Credentials.Secret
 }
 
 // ReturnRateLimitError specifies behavior when the Twitter API returns a rate-limit error.
