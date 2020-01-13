@@ -28,7 +28,8 @@ type Entities struct {
 		Id          int64  `json:"id"`
 		Id_str      string `json:"id_str"`
 	} `json:"user_mentions"`
-	Media []EntityMedia `json:"media"`
+	Media       []EntityMedia `json:"media"`
+	Description UrlEntity     `json:"description"`
 }
 
 type EntityMedia struct {
