@@ -299,6 +299,7 @@ func NewApiError(resp *http.Response) *ApiError {
 	return &ApiError{
 		StatusCode: resp.StatusCode,
 		Header:     resp.Header,
+		Method:     resp.Request.Method,
 		Body:       string(body),
 		URL:        resp.Request.URL,
 	}
