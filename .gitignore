@@ -4,3 +4,4 @@
 conf.sh
 *.patch
 anaconda.test
+.idea*

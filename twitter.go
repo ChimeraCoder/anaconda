@@ -62,6 +62,7 @@ const (
 	BaseUrlV1     = "https://api.twitter.com/1"
 	BaseUrl       = "https://api.twitter.com/1.1"
 	UploadBaseUrl = "https://upload.twitter.com/1.1"
+	AddBaseUrl    = "https://ads-api.twitter.com/7"
 )
 
 var (
