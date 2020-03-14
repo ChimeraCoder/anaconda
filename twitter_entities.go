@@ -29,6 +29,17 @@ type Entities struct {
 		Id_str      string `json:"id_str"`
 	} `json:"user_mentions"`
 	Media []EntityMedia `json:"media"`
+	Polls EntityPolls `json:"polls"`
+}
+
+type EntityPollOptions struct {
+	Position int `json:"position"`
+	Text string `json:"text"`
+}
+
+type EntityPolls struct {
+	Options []EntityPollOptions `json:"options"`
+	DurationMinutes int `json:"duration_minutes"`
 }
 
 type EntityMedia struct {
