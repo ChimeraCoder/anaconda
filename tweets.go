@@ -36,6 +36,16 @@ func (a TwitterApi) GetRetweets(id int64, v url.Values) (tweets []Tweet, err err
 	return tweets, (<-response_ch).err
 }
 
+//PostTweetWithPoll will create a tweet with the specified status message and a user defined poll
+func (a TwitterApi) PostTweetWithPoll(status string, v url.Values, choices []string, pollDurationMinutes int) (tweet Tweet, err error) {
+	// TODO @kris-nova we can support media here which would be cool because it's in beta and you can't do that from the web UI
+	v = cleanValues(v)
+	v.Set("status", status)
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + fmt.Sprintf("/account/%d.json", id), v, &tweet, _POST, response_ch}
+	return tweet, (<-response_ch).err
+}
+
 //PostTweet will create a tweet with the specified status message
 func (a TwitterApi) PostTweet(status string, v url.Values) (tweet Tweet, err error) {
 	v = cleanValues(v)
