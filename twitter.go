@@ -189,7 +189,7 @@ func (c *TwitterApi) SetBaseUrl(baseUrl string) {
 //Redirect the user to this URL.
 //This assumes that the consumer key has already been set (using SetConsumerKey or NewTwitterApiWithCredentials).
 func (c *TwitterApi) AuthorizationURL(callback string) (string, *oauth.Credentials, error) {
-	tempCred, err := c.oauthClient.RequestTemporaryCredentials(http.DefaultClient, callback, nil)
+	tempCred, err := c.oauthClient.RequestTemporaryCredentials(c.HttpClient, callback, nil)
 	if err != nil {
 		return "", nil, err
 	}
