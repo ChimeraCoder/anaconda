@@ -63,6 +63,7 @@ func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMed
 	v.Set("command", "INIT")
 	v.Set("media_type", mimeType)
 	v.Set("total_bytes", strconv.FormatInt(int64(totalBytes), 10))
+	v.Set("media_category", "tweet_video")
 
 	var mediaResponse ChunkedMedia
 
