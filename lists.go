@@ -52,11 +52,11 @@ func (a TwitterApi) GetLists(userID int64, screenName string, reverse bool, v ur
 	v.Set("screen_name", screenName)
 	v.Set("reverse", strconv.FormatBool(reverse))
 
-	var listResponse ListResponse
+	var responseList []List
 
 	response_ch := make(chan response)
-	a.queryQueue <- query{a.baseUrl + "/lists/list.json", v, &listResponse, _GET, response_ch}
-	return listResponse.Lists, (<-response_ch).err
+	a.queryQueue <- query{a.baseUrl + "/lists/list.json", v, &responseList, _GET, response_ch}
+	return responseList, (<-response_ch).err
 }
 
 // GetListsOwnedBy implements /lists/ownerships.json
