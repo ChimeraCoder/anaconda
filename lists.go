@@ -42,6 +42,23 @@ func (a TwitterApi) AddMultipleUsersToList(screenNames []string, listID int64, v
 	return list, r.err
 }
 
+// GetLists implements /lists/list.json
+// Returns all lists the authenticating or specified user subscribes to, including their own
+// The user is specified using the userID or screenName parameters.
+// reverse if you would like owned lists to be returned first.
+func (a TwitterApi) GetLists(userID int64, screenName string, reverse bool, v url.Values) (lists []List, err error) {
+	v = cleanValues(v)
+	v.Set("user_id", strconv.FormatInt(userID, 10))
+	v.Set("screen_name", screenName)
+	v.Set("reverse", strconv.FormatBool(reverse))
+
+	var listResponse ListResponse
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/list.json", v, &listResponse, _GET, response_ch}
+	return listResponse.Lists, (<-response_ch).err
+}
+
 // GetListsOwnedBy implements /lists/ownerships.json
 // screen_name, count, and cursor are all optional values
 func (a TwitterApi) GetListsOwnedBy(userID int64, v url.Values) (lists []List, err error) {
