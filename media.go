@@ -29,11 +29,12 @@ type Video struct {
 }
 
 type VideoMedia struct {
-	MediaID          int64  `json:"media_id"`
-	MediaIDString    string `json:"media_id_string"`
-	Size             int    `json:"size"`
-	ExpiresAfterSecs int    `json:"expires_after_secs"`
-	Video            Video  `json:"video"`
+	MediaID          int64          `json:"media_id"`
+	MediaIDString    string         `json:"media_id_string"`
+	Size             int            `json:"size"`
+	ExpiresAfterSecs int            `json:"expires_after_secs"`
+	Video            Video          `json:"video"`
+	ProcessingInfo   ProcessingInfo `json:"processing_info"`
 }
 
 type VideoStatus struct {
@@ -47,6 +48,18 @@ type ProcessingInfo struct {
 	TwitterError    TwitterError `json:"error"`
 }
 
+type MediaCategory string
+
+func (this MediaCategory) String() string {
+	return string(this)
+}
+
+const (
+	TweetGif   MediaCategory = "tweet_gif"
+	TweetVideo               = "tweet_video"
+	None                     = ""
+)
+
 func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	v := url.Values{}
 	v.Set("media_data", base64String)
@@ -58,12 +71,14 @@ func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	return mediaResponse, (<-response_ch).err
 }
 
-func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string) (chunkedMedia ChunkedMedia, err error) {
+func (a TwitterApi) UploadVideoInit(totalBytes int, mimeType string, mediaCategory MediaCategory) (chunkedMedia ChunkedMedia, err error) {
 	v := url.Values{}
 	v.Set("command", "INIT")
 	v.Set("media_type", mimeType)
 	v.Set("total_bytes", strconv.FormatInt(int64(totalBytes), 10))
-	v.Set("media_category", "tweet_video")
+	if mediaCategory != "" {
+		v.Set("media_category", mediaCategory.String())
+	}
 
 	var mediaResponse ChunkedMedia
 
