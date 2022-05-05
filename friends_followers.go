@@ -194,6 +194,17 @@ func (a TwitterApi) GetFollowersListAll(v url.Values) (result chan FollowersPage
 	return result
 }
 
+// GetListMembers implements /lists/members.json
+func (a TwitterApi) GetListMembers(screenName string, listID int64, v url.Values) (c UserCursor, err error) {
+	v = cleanValues(v)
+	v.Set("list_id", strconv.FormatInt(listID, 10))
+	v.Set("screen_name", screenName)
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{a.baseUrl + "/lists/members.json", v, &c, _GET, response_ch}
+	return c, (<-response_ch).err
+}
+
 func (a TwitterApi) GetFollowersUser(id int64, v url.Values) (c Cursor, err error) {
 	v = cleanValues(v)
 	v.Set("user_id", strconv.FormatInt(id, 10))

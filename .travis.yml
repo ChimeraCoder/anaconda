@@ -27,6 +27,11 @@ go:
   - 1.9
   - tip
 
+matrix:
+    exclude:
+        - os: osx
+          go: 1.6
+
 script:
   - echo $TRAVIS_GO_VERSION
   - if [ "$TRAVIS_GO_VERSION" == "1.6" ] || [ "$TRAVIS_GO_VERSION" == "1.7" ] || [ "$TRAVIS_GO_VERSION" == "1.8" ]; then go list ./... | grep -v vendor | xargs go test -race -v -timeout 60s; else go test -race -v -timeout 60s ./...; fi

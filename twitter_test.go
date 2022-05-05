@@ -126,6 +126,15 @@ func Test_TwitterApi_NewTwitterApi(t *testing.T) {
 	}
 }
 
+// Test that creating a TwitterApi client creates a client with non-empty OAuth credentials
+func Test_TwitterApi_NewTwitterApiWithCredentials(t *testing.T) {
+	apiLocal := anaconda.NewTwitterApiWithCredentials(ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
+
+	if apiLocal.Credentials == nil {
+		t.Fatalf("Twitter Api client has empty (nil) credentials")
+	}
+}
+
 // Test that the GetSearch function actually works and returns non-empty results
 func Test_TwitterApi_GetSearch(t *testing.T) {
 	search_result, err := api.GetSearch("golang", nil)
@@ -397,6 +406,64 @@ func Test_DMScreenName(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 		return
+	}
+}
+
+// This assumes that the current user has at least one list, and the first list includes the current user as a member.
+func Test_RemoveUserFromList(t *testing.T) {
+	user, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Fatalf("GetSelf returned error: %s", err.Error())
+	}
+
+	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	if err != nil {
+		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
+	}
+
+	if len(lists) == 0 {
+		t.Fatalf("GetListsOwnedBy returned no lists")
+	}
+
+	list, err := api.RemoveUserFromList(user.ScreenName, lists[0].Id, nil)
+	if err != nil {
+		t.Fatalf("RemoveUserFromList returned error: %s", err.Error())
+	}
+
+	// If all attributes are equal to the zero value for that type,
+	// then the original value was not valid
+	if reflect.DeepEqual(list, anaconda.List{}) {
+		t.Fatalf("Received %#v", list)
+	}
+}
+
+// This assumes that the current user has at least one list, and the first list includes the current user as a member.
+func Test_RemoveMultipleUsersFromList(t *testing.T) {
+	user, err := api.GetSelf(url.Values{})
+	if err != nil {
+		t.Fatalf("GetSelf returned error: %s", err.Error())
+	}
+
+	lists, err := api.GetListsOwnedBy(user.Id, nil)
+	if err != nil {
+		t.Fatalf("GetListsOwnedBy returned error: %s", err.Error())
+	}
+
+	if len(lists) == 0 {
+		t.Fatalf("GetListsOwnedBy returned no lists")
+	}
+
+	users := []string{user.ScreenName}
+
+	list, err := api.RemoveMultipleUsersFromList(users, lists[0].Id, nil)
+	if err != nil {
+		t.Fatalf("RemoveMultipleUsersFromList returned error: %s", err.Error())
+	}
+
+	// If all attributes are equal to the zero value for that type,
+	// then the original value was not valid
+	if reflect.DeepEqual(list, anaconda.List{}) {
+		t.Fatalf("Received %#v", list)
 	}
 }
 

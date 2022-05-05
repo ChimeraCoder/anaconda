@@ -223,9 +223,9 @@ func jsonToKnownType(j []byte) interface{} {
 func (s *Stream) requestStream(urlStr string, v url.Values, method int) (resp *http.Response, err error) {
 	switch method {
 	case _GET:
-		return oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.oauthClient.Get(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	case _POST:
-		return oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
+		return s.api.oauthClient.Post(s.api.HttpClient, s.api.Credentials, urlStr, v)
 	default:
 	}
 	return nil, fmt.Errorf("HTTP method not yet supported")
