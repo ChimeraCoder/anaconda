@@ -36,7 +36,7 @@ func (a TwitterApi) GetRetweets(id int64, v url.Values) (tweets []Tweet, err err
 	return tweets, (<-response_ch).err
 }
 
-// PostTweet will create a tweet with the specified status message
+//PostTweet will create a tweet with the specified status message
 func (a TwitterApi) PostTweet(status string, v url.Values) (tweet Tweet, err error) {
 	v = cleanValues(v)
 	v.Set("status", status)
@@ -45,18 +45,8 @@ func (a TwitterApi) PostTweet(status string, v url.Values) (tweet Tweet, err err
 	return tweet, (<-response_ch).err
 }
 
-// PostTweet will create a tweet with the specified status message with media
-func (a TwitterApi) PostTweetV2Media(status string, v url.Values, body []byte) (tweet Tweet, err error) {
-	v = cleanValues(v)
-	// v.Set("text", status)
-	// v.Set("text", status)
-	response_ch := make(chan response)
-	a.queryQueueBody <- queryBody{a.baseUrlV2 + "/tweets", v, &tweet, _POST, response_ch, body}
-	return tweet, (<-response_ch).err
-}
-
-// DeleteTweet will destroy (delete) the status (tweet) with the specified ID, assuming that the authenticated user is the author of the status (tweet).
-// If trimUser is set to true, only the user's Id will be provided in the user object returned.
+//DeleteTweet will destroy (delete) the status (tweet) with the specified ID, assuming that the authenticated user is the author of the status (tweet).
+//If trimUser is set to true, only the user's Id will be provided in the user object returned.
 func (a TwitterApi) DeleteTweet(id int64, trimUser bool) (tweet Tweet, err error) {
 	v := url.Values{}
 	if trimUser {
@@ -67,8 +57,8 @@ func (a TwitterApi) DeleteTweet(id int64, trimUser bool) (tweet Tweet, err error
 	return tweet, (<-response_ch).err
 }
 
-// Retweet will retweet the status (tweet) with the specified ID.
-// trimUser functions as in DeleteTweet
+//Retweet will retweet the status (tweet) with the specified ID.
+//trimUser functions as in DeleteTweet
 func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 	v := url.Values{}
 	if trimUser {
@@ -79,12 +69,12 @@ func (a TwitterApi) Retweet(id int64, trimUser bool) (rt Tweet, err error) {
 	return rt, (<-response_ch).err
 }
 
-// UnRetweet will renove retweet Untweets a retweeted status.
-// Returns the original Tweet with retweet details embedded.
+//UnRetweet will renove retweet Untweets a retweeted status.
+//Returns the original Tweet with retweet details embedded.
 //
-// https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-unretweet-id
-// trim_user: tweet returned in a timeline will include a user object
-// including only the status authors numerical ID.
+//https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-unretweet-id
+//trim_user: tweet returned in a timeline will include a user object
+//including only the status authors numerical ID.
 func (a TwitterApi) UnRetweet(id int64, trimUser bool) (rt Tweet, err error) {
 	v := url.Values{}
 	if trimUser {
