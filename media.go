@@ -36,6 +36,31 @@ type VideoMedia struct {
 	Video            Video  `json:"video"`
 }
 
+type MediaStatus struct {
+	MediaID          int64             `json:"media_id"`
+	MediaIDString    string            `json:"media_id_string"`
+	ExpiresAfterSecs int               `json:"expires_after_secs"`
+	ProcessingInfo   ProcessingInfo    `json:"processing_info"`
+	Video            *MediaStatusVideo `json:"video"`
+}
+
+type MediaStatusVideo struct {
+	VideoType string `json:"video_type"`
+}
+
+type ProcessingInfo struct {
+	State           string           `json:"state"`            // state transition flow is pending -> in_progress -> [failed|succeeded]
+	CheckAfterSecs  int              `json:"check_after_secs"` // check for the update after 10 seconds
+	ProgressPercent int              `json:"progress_percent"` // Optional [0-100] int value. Please don't use it as a replacement of "state" field.
+	Error           *ProcessingError `json:"error"`
+}
+
+type ProcessingError struct {
+	Code    int    `json:"code"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
+}
+
 func (a TwitterApi) UploadMedia(base64String string) (media Media, err error) {
 	v := url.Values{}
 	v.Set("media_data", base64String)
@@ -85,5 +110,17 @@ func (a TwitterApi) UploadVideoFinalize(mediaIdString string) (videoMedia VideoM
 
 	response_ch := make(chan response)
 	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _POST, response_ch}
+	return mediaResponse, (<-response_ch).err
+}
+
+func (a TwitterApi) UploadVideoStatus(mediaIdString string) (mediaStatus MediaStatus, err error) {
+	v := url.Values{}
+	v.Set("command", "STATUS")
+	v.Set("media_id", mediaIdString)
+
+	var mediaResponse MediaStatus
+
+	response_ch := make(chan response)
+	a.queryQueue <- query{UploadBaseUrl + "/media/upload.json", v, &mediaResponse, _GET, response_ch}
 	return mediaResponse, (<-response_ch).err
 }
